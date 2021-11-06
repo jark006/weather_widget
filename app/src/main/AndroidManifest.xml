@@ -33,16 +33,16 @@
                 android:resource="@xml/widget1_info" />
         </receiver>
 
-        <activity
-            android:name=".MainActivity"
-            android:exported="true">
+<!--        <activity-->
+<!--            android:name=".MainActivity"-->
+<!--            android:exported="true">-->
 <!--            <intent-filter>-->
 <!--                <action android:name="android.intent.action.MAIN" />-->
 
 <!--                <category android:name="android.intent.category.LAUNCHER" />-->
 <!--            </intent-filter>-->
-        </activity>
-        <service android:name="com.amap.api.location.APSService"/>
+<!--        </activity>-->
+<!--        <service android:name="com.amap.api.location.APSService"/>-->
     </application>
 
 </manifest>

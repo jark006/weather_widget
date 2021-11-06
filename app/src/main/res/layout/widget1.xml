@@ -14,7 +14,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#22222222"
+            android:background="#80222222"
             android:orientation="horizontal">
 
             <TextView
@@ -27,11 +27,11 @@
             <TextView
                 android:id="@+id/descriptionTomorrow"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_weight="3"
                 android:gravity="center"
-                android:textSize="12sp"
-                android:textColor="@color/white" />
+                android:textColor="@color/white"
+                android:textSize="12sp" />
         </LinearLayout>
 
         <LinearLayout
@@ -51,21 +51,21 @@
 
             <TextView
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:gravity="center"
-                android:textSize="20sp"
+                android:text="明天"
                 android:textColor="@color/white"
-                android:text="明天" />
+                android:textSize="20sp" />
 
             <TextView
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:gravity="center"
-                android:textSize="20sp"
+                android:text="后天"
                 android:textColor="@color/white"
-                android:text="后天" />
+                android:textSize="20sp" />
         </LinearLayout>
 
         <LinearLayout
@@ -151,9 +151,9 @@
         </LinearLayout>
 
         <TextView
-            android:background="#62222222"
+            android:background="#80222222"
             android:gravity="center"
-            android:textSize="14sp"
+            android:textSize="12sp"
             android:textColor="@color/white"
             android:id="@+id/description"
             android:layout_width="match_parent"
