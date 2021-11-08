@@ -7,19 +7,13 @@ android {
 
     defaultConfig {
         applicationId "com.jark006.weather"
-        minSdk 29
+        minSdk 30
         targetSdk 30
         versionCode 1
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        // 高德地图 极光推送 key
-        manifestPlaceholders = [
-                // 高德地图
-                // release key
-//                AMAP_KEY: "2711cbe26c75b312eb9bc3921cb5ffd0",
-                AMAP_KEY: "9a7e73e97f5b818099b809ac02b97bf8",
-        ]
+
     }
 
 
@@ -46,8 +40,8 @@ dependencies {
 //    implementation 'androidx.constraintlayout:constraintlayout:2.1.1'
 //    implementation 'com.google.android.gms:play-services-location:18.0.0'
     testImplementation 'junit:junit:4+'
-//    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
-//    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 
 //    implementation 'com.amap.api:location:5.6.0'
     // retrofit
