@@ -11,5 +11,11 @@
     <string name="widget_update_failed">更新失败</string>
     <string name="widget_update_time">%1$s 更新</string>
     <string name="widget_tomorrow">明天</string>
+    <string name="updateTime">时间</string>
+    <string name="district">地区</string>
+    <string name="tomorrow">明天</string>
+    <string name="big_tomorrow">后天</string>
+    <string name="temp_example">25°</string>
+    <string name="tips">天气提醒</string>
 
 </resources>

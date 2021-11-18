@@ -14,11 +14,7 @@ public interface ApiService {
     @GET("{longitude},{latitude}/weather.json?dailysteps=6")
     Call<WeatherBean> weather(@Path("longitude") double longitude, @Path("latitude") double latitude);
 
-//    @GET("{longitude},{latitude}/weather.json?dailysteps=6")
-//    Call<district> getD(@Path("longitude") double longitude, @Path("latitude") double latitude);
-
-//    @GET("{longitude},{latitude}/weather.json?dailysteps=6")
     @GET("regeo")//https://restapi.amap.com/v3/geocode/regeo?key=c2844d38363cae2a8a52eb9fa18a2ebc&location=113.381268,23.0390333
-    Call<district> getD(@Query("key") String key, @Query("location") String location);
+    Call<district> getLocationName(@Query("key") String key, @Query("location") String location);
 
 }

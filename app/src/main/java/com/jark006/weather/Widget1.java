@@ -17,7 +17,6 @@ import android.util.Log;
 import android.widget.RemoteViews;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import com.jark006.weather.bean.Daily;
@@ -25,7 +24,7 @@ import com.jark006.weather.bean.Realtime;
 import com.jark006.weather.bean.Skycon;
 import com.jark006.weather.bean.Temperature;
 import com.jark006.weather.bean.WeatherBean;
-import java.util.Date;
+
 import java.util.List;
 
 import retrofit2.Call;
@@ -33,7 +32,7 @@ import retrofit2.Callback;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.Response;
-import com.jark006.weather.bean.Result;
+
 import com.jark006.weather.utils.DateUtils;
 import com.jark006.weather.utils.ImageUtils;
 import com.jark006.weather.district.district;
@@ -42,9 +41,15 @@ import com.jark006.weather.district.district;
  * Implementation of App Widget functionality.
  */
 public class Widget1 extends AppWidgetProvider {
-    double myLongitude = 113.381429;
+    double myLongitude = 113.381429; //默认在广州大学城
     double myLatitude  =  23.039126;
-    String myDistrict = "南亭";
+    String myDistrict  = "广州大学城";
+
+    double lastLongitude = myLongitude;
+    double lastLatitude  =  myLatitude;
+    String lastDistrict  = myDistrict;
+
+//    static long lastUpdateTime = System.currentTimeMillis();
     /**
      * 更新
      */
@@ -77,22 +82,14 @@ public class Widget1 extends AppWidgetProvider {
         if (ACTION_UPDATE.equals(action)) {
             Log.d(TAG, "onReceive: 手动刷新1");
             getLocation(context);
-//            Log.d(TAG, "onReceive: 手动刷新2");
         }
-//        Log.d(TAG, "onReceive: 3333");
-
     }
 
-//    public Location getLastKnownLocation() {
-//        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-//    }
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
-//        layoutID = appWidgetIds[0];
-//        Log.d(TAG, "onUpdate: 刷新1");
+        Log.d(TAG, "onUpdate: 刷新1");
         getLocation(context);
-//        Log.d(TAG, "onUpdate: 刷新2");
     }
 
 
@@ -116,7 +113,8 @@ public class Widget1 extends AppWidgetProvider {
 //            in.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 //            context.startActivity(in);
 
-            updateAppWidget(context, UPDATE_FAILED, "没有定位权限", null);
+            String ss = DateUtils.getFormatDate(System.currentTimeMillis(), DateUtils.HHmm)+"定位错误";
+            updateAppWidget(context, UPDATE_FAILED, ss, null);
             return ;
         }
 
@@ -134,17 +132,29 @@ public class Widget1 extends AppWidgetProvider {
         if(bestLocation != null){
             myLongitude = bestLocation.getLongitude();
             myLatitude = bestLocation.getLatitude();
+            myDistrict = "本地";
             Log.e(TAG, "bestLocation: "+myLongitude+","+myLatitude );
         }else{
             Log.w(TAG, "LocationFail,Using default:"+myLongitude+","+myLatitude );
         }
+
+        //这个纬度下， 大约半径[5km]以内不用重新获取地名
+        if(Math.sqrt(Math.pow(myLongitude-lastLongitude,2)+Math.pow(myLatitude-lastLatitude, 2)) < 0.05){
+            myDistrict = lastDistrict;
+            getWeatherData(context);
+            return;
+        }else{
+            lastLongitude = myLongitude;
+            lastLatitude  = myLatitude;
+        }
+
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("https://restapi.amap.com/v3/geocode/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         ApiService apiService = retrofit.create(ApiService.class);
-        Call<district> call = apiService.getD("c2844d38363cae2a8a52eb9fa18a2ebc", myLongitude+","+myLatitude);
+        Call<district> call = apiService.getLocationName("c2844d38363cae2a8a52eb9fa18a2ebc", myLongitude+","+myLatitude);
         call.enqueue(new Callback<district>() {
             @Override
             public void onResponse(@NonNull Call<district> call, @NonNull Response<district> response) {
@@ -152,9 +162,12 @@ public class Widget1 extends AppWidgetProvider {
                 if (district != null ){
                     if(district.regeocode.addressComponent.district.length()>1){
                         myDistrict = district.regeocode.addressComponent.district;
-                    }else{
+                    }else if(district.regeocode.addressComponent.city.length()>1){
                         myDistrict = district.regeocode.addressComponent.city;
+                    }else{
+                        myDistrict = district.regeocode.addressComponent.province;
                     }
+                    lastDistrict = myDistrict;
                     Log.w(TAG, "getLocation onResponse: 定位 "+myDistrict);
                 }else{
                     Log.w(TAG, "getLocation onResponse: myDistrict == null");
@@ -164,7 +177,6 @@ public class Widget1 extends AppWidgetProvider {
 
             @Override
             public void onFailure(@NonNull Call<district> call, @NonNull Throwable t) {
-//                updateAppWidget(context, UPDATE_FAILED, district, null);
                 Log.w(TAG, "getLocation onFailure: 使用默认："+myDistrict);
                 getWeatherData(context);
             }
@@ -179,7 +191,8 @@ public class Widget1 extends AppWidgetProvider {
     private void getWeatherData(final Context context) {
         Log.d(TAG, "getWeatherData enter");
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://api.caiyunapp.com/v2/TwsDo9aQUYewFhV8/")
+//                .baseUrl("https://api.caiyunapp.com/v2/TwsDo9aQUYewFhV8/")//原作者
+                .baseUrl("https://api.caiyunapp.com/v2.5/wh9aWLYieE1akfGi/")//jark
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         ApiService apiService = retrofit.create(ApiService.class);
@@ -195,14 +208,15 @@ public class Widget1 extends AppWidgetProvider {
             @Override
             public void onFailure(@NonNull Call<WeatherBean> call, @NonNull Throwable t) {
                 Log.d(TAG, "getWeatherData onFailure: ");
-                updateAppWidget(context, UPDATE_FAILED, myDistrict, null);
+                String ss = DateUtils.getFormatDate(System.currentTimeMillis(), DateUtils.HHmm)+"获取天气数据失败";
+                updateAppWidget(context, UPDATE_FAILED, ss, null);
             }
         });
     }
 
-    /**
-     * 创建跳转首界面 PendingIntent
-     */
+//    /**
+//     * 创建跳转首界面 PendingIntent
+//     */
 //    protected PendingIntent createLaunchPendingIntent(Context context) {
 //        Intent launchIntent = new Intent(context, MainActivity.class);
 //        return PendingIntent.getActivity(context, 0, launchIntent,
@@ -242,8 +256,7 @@ public class Widget1 extends AppWidgetProvider {
             showAppWidgetData(context, remoteViews, district, weatherBean);
 //            Log.d(TAG, "updateAppWidget: UPDATE_SUCCESS");
         } else {
-            String ss = DateUtils.getFormatDate(System.currentTimeMillis(), DateUtils.HHmm);
-            remoteViews.setTextViewText(R.id.descriptionTomorrow, ss+"定位错误");
+            remoteViews.setTextViewText(R.id.descriptionTomorrow, district);
 //            Log.d(TAG, "updateAppWidget: Fail");
 
         }
@@ -262,7 +275,8 @@ public class Widget1 extends AppWidgetProvider {
 
         remoteViews.setTextViewText(R.id.location, district);
         remoteViews.setTextViewText(R.id.descriptionTomorrow, forecast.equals(description)?"":forecast);
-        String updateDate = DateUtils.getFormatDate(weatherBean.server_time * 1000, DateUtils.HHmm);
+//        String updateDate = DateUtils.getFormatDate(weatherBean.server_time * 1000, DateUtils.HHmm);
+        String updateDate = DateUtils.getFormatDate(System.currentTimeMillis(), DateUtils.HHmm);
         remoteViews.setTextViewText(R.id.updateTime, context.getString(R.string.widget_update_time, updateDate));
         remoteViews.setTextViewText(R.id.today, (int) realtime.temperature + "°");
 

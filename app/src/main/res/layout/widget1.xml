@@ -18,20 +18,18 @@
 
             <TextView
                 android:id="@+id/updateTime"
-                android:layout_width="0dp"
+                android:text="@string/updateTime"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:textColor="@color/white"
-                android:text="时间" />
-
+                android:textColor="@color/white" />
             <TextView
                 android:id="@+id/descriptionTomorrow"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_weight="3"
                 android:gravity="center"
                 android:textColor="@color/white"
                 android:textSize="12sp" />
+
         </LinearLayout>
 
         <LinearLayout
@@ -45,7 +43,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="2"
                 android:gravity="center"
-                android:text="地区"
+                android:text="@string/district"
                 android:textColor="@color/white"
                 android:textSize="24sp" />
 
@@ -54,7 +52,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:gravity="center"
-                android:text="明天"
+                android:text="@string/tomorrow"
                 android:textColor="@color/white"
                 android:textSize="20sp" />
 
@@ -63,7 +61,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:gravity="center"
-                android:text="后天"
+                android:text="@string/big_tomorrow"
                 android:textColor="@color/white"
                 android:textSize="20sp" />
         </LinearLayout>
@@ -79,7 +77,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="2"
                 android:gravity="center"
-                android:text="25°"
+                android:text="@string/temp_example"
                 android:textColor="@color/white"
                 android:textSize="65sp" />
 
@@ -92,27 +90,26 @@
                 <TextView
                     android:id="@+id/tomorrowRange"
                     android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
                     android:gravity="center"
+                    android:text="@string/temp_example"
                     android:textColor="@color/white" />
-
-                <ImageView
-                    android:id="@+id/tomorrowImg"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    app:srcCompat="@drawable/ic_cloud" />
 
                 <TextView
                     android:id="@+id/tomorrow"
                     android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
                     android:gravity="center"
-                    android:text="23°"
+                    android:text="@string/temp_example"
                     android:textColor="@color/white"
                     android:textSize="22sp" />
+
+                <ImageView
+                    android:id="@+id/tomorrowImg"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    app:srcCompat="@drawable/ic_cloud" />
+
             </LinearLayout>
 
             <LinearLayout
@@ -124,27 +121,25 @@
                 <TextView
                     android:id="@+id/bigTomorrowRange"
                     android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
                     android:gravity="center"
+                    android:text="@string/temp_example"
                     android:textColor="@color/white" />
-
-                <ImageView
-                    android:id="@+id/bigTomorrowImg"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    app:srcCompat="@drawable/ic_cloud" />
 
                 <TextView
                     android:id="@+id/bigTomorrow"
                     android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
                     android:gravity="center"
-                    android:text="26°"
+                    android:text="@string/temp_example"
                     android:textColor="@color/white"
                     android:textSize="22sp" />
+
+                <ImageView
+                    android:id="@+id/bigTomorrowImg"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    app:srcCompat="@drawable/ic_cloud" />
 
             </LinearLayout>
 
@@ -153,9 +148,10 @@
         <TextView
             android:id="@+id/description"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:gravity="center"
             android:textColor="@color/white"
+            android:text="@string/tips"
             android:textSize="12sp" />
 
 
