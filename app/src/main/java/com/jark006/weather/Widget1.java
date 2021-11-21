@@ -20,6 +20,8 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
 import com.jark006.weather.bean.Daily;
+import com.jark006.weather.bean.DoubleValue;
+import com.jark006.weather.bean.Hourly;
 import com.jark006.weather.bean.Realtime;
 import com.jark006.weather.bean.Skycon;
 import com.jark006.weather.bean.Temperature;
@@ -187,6 +189,7 @@ public class Widget1 extends AppWidgetProvider {
     }
     /**
      * 获取天气数据
+     * https://api.caiyunapp.com/v2.5/wh9aWLYieE1akfGi/113.381429,23.039126/weather.json
      */
     private void getWeatherData(final Context context) {
         Log.d(TAG, "getWeatherData enter");
@@ -267,6 +270,13 @@ public class Widget1 extends AppWidgetProvider {
 
     private void showAppWidgetData(Context context, RemoteViews remoteViews, String district, WeatherBean weatherBean) {
         Log.w(TAG, "showAppWidgetData: enter" );
+
+        StringBuilder hourTemp = new StringBuilder();
+        List<DoubleValue> list = weatherBean.result.hourly.temperature;
+        for (int i = 0; i < 10; i++) {
+            hourTemp.append((int) list.get(i).value).append("° ");
+        }
+
         Realtime realtime = weatherBean.result.realtime;
         Daily daily = weatherBean.result.daily;
 
@@ -274,7 +284,7 @@ public class Widget1 extends AppWidgetProvider {
         String description = weatherBean.result.minutely.description;
 
         remoteViews.setTextViewText(R.id.location, district);
-        remoteViews.setTextViewText(R.id.descriptionTomorrow, forecast.equals(description)?"":forecast);
+        remoteViews.setTextViewText(R.id.descriptionTomorrow, forecast.equals(description)? hourTemp.toString() :forecast);
 //        String updateDate = DateUtils.getFormatDate(weatherBean.server_time * 1000, DateUtils.HHmm);
         String updateDate = DateUtils.getFormatDate(System.currentTimeMillis(), DateUtils.HHmm);
         remoteViews.setTextViewText(R.id.updateTime, context.getString(R.string.widget_update_time, updateDate));
@@ -304,19 +314,15 @@ public class Widget1 extends AppWidgetProvider {
         String weather = weatherBean.result.realtime.skycon;
         // 降雨（雪）强度
         double intensity = weatherBean.result.realtime.precipitation.local.intensity;
-        // 是否是白天
-//        Result result = weatherBean.result;
-//        String currentDate = DateUtils.getFormatDate(new Date(), DateUtils.yyyyMMdd) + " ";
-//        Date sunriseDate = DateUtils.getDate(currentDate + result.daily.astro.get(0).sunrise.time, DateUtils.yyyyMMddHHmm);
-//        Date sunsetDate = DateUtils.getDate(currentDate + result.daily.astro.get(0).sunset.time, DateUtils.yyyyMMddHHmm);
-//        Date date = new Date();
-//        boolean isDay = date.compareTo(sunriseDate) >= 0 && date.compareTo(sunsetDate) < 0;
 
+
+
+        // 是否是白天
         long hours = System.currentTimeMillis()/3600000 +8;
         hours %= 24;
-        Log.w(TAG, "showAppWidgetData: hours:"+hours );
         boolean isDay  = hours > 6 && hours < 18;
 
+        Log.w(TAG, "showAppWidgetData: hours:"+hours+isDay );
 
         // 设置背景
         remoteViews.setInt(R.id.widget_rl, "setBackgroundResource", ImageUtils.getBgResourceId(weather, intensity, isDay));

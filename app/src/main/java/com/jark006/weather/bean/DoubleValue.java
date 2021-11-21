@@ -1,6 +1,6 @@
 package com.jark006.weather.bean;
 
-class DoubleValue {
-    double value;
-    String datetime;
+public class DoubleValue {
+    public double value;
+    public String datetime;
 }

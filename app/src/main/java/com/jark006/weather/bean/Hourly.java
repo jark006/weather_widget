@@ -15,6 +15,6 @@ public class Hourly {
     List<IntValue> pm25;
     List<DoubleValue> precipitation;
     List<WindHourly> wind;
-    List<DoubleValue> temperature;
+    public List<DoubleValue> temperature;
 }
 
