@@ -259,7 +259,7 @@ public class Widget1 extends AppWidgetProvider {
             showAppWidgetData(context, remoteViews, district, weatherBean);
 //            Log.d(TAG, "updateAppWidget: UPDATE_SUCCESS");
         } else {
-            remoteViews.setTextViewText(R.id.descriptionTomorrow, district);
+            remoteViews.setTextViewText(R.id.hour_str, district);
 //            Log.d(TAG, "updateAppWidget: Fail");
 
         }
@@ -272,10 +272,13 @@ public class Widget1 extends AppWidgetProvider {
         Log.w(TAG, "showAppWidgetData: enter" );
 
         StringBuilder hourTemp = new StringBuilder();
+        StringBuilder hourStr  = new StringBuilder();
         List<DoubleValue> list = weatherBean.result.hourly.temperature;
         for (int i = 0; i < 10; i++) {
             hourTemp.append((int) list.get(i).value).append("° ");
+            hourStr.append(list.get(i).datetime.substring(11,13)).append("H ");
         }
+        remoteViews.setTextViewText(R.id.hour_temp, hourTemp);
 
         Realtime realtime = weatherBean.result.realtime;
         Daily daily = weatherBean.result.daily;
@@ -284,7 +287,7 @@ public class Widget1 extends AppWidgetProvider {
         String description = weatherBean.result.minutely.description;
 
         remoteViews.setTextViewText(R.id.location, district);
-        remoteViews.setTextViewText(R.id.descriptionTomorrow, forecast.equals(description)? hourTemp.toString() :forecast);
+        remoteViews.setTextViewText(R.id.hour_str, forecast.equals(description)? hourStr.toString() :forecast);
 //        String updateDate = DateUtils.getFormatDate(weatherBean.server_time * 1000, DateUtils.HHmm);
         String updateDate = DateUtils.getFormatDate(System.currentTimeMillis(), DateUtils.HHmm);
         remoteViews.setTextViewText(R.id.updateTime, context.getString(R.string.widget_update_time, updateDate));
