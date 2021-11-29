@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">天气小部件</string>
-<!--    <string name="appwidget_text">EXAMPLE</string>-->
     <string name="add_widget">Add widget</string>
     <string name="app_widget_description">近期未来状况</string>
 
@@ -17,5 +16,6 @@
     <string name="big_tomorrow">后天</string>
     <string name="temp_example">25°</string>
     <string name="tips">天气提醒</string>
+    <string name="setting_permission">设置定位权限</string>
 
 </resources>

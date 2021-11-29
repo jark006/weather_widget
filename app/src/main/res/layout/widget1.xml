@@ -1,11 +1,10 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/widget_rl"
-    style="@style/Widget.Weather.AppWidget.Container"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:theme="@style/Theme.Weather.AppWidgetContainer">
+    android:background="#555555"
+    android:orientation="vertical">
 
 
     <LinearLayout

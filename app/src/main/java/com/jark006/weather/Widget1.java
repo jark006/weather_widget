@@ -21,23 +21,21 @@ import androidx.core.app.ActivityCompat;
 
 import com.jark006.weather.bean.Daily;
 import com.jark006.weather.bean.DoubleValue;
-import com.jark006.weather.bean.Hourly;
 import com.jark006.weather.bean.Realtime;
 import com.jark006.weather.bean.Skycon;
 import com.jark006.weather.bean.Temperature;
 import com.jark006.weather.bean.WeatherBean;
+import com.jark006.weather.district.district;
+import com.jark006.weather.utils.DateUtils;
+import com.jark006.weather.utils.ImageUtils;
 
 import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
+import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
-import retrofit2.Response;
-
-import com.jark006.weather.utils.DateUtils;
-import com.jark006.weather.utils.ImageUtils;
-import com.jark006.weather.district.district;
 
 /**
  * Implementation of App Widget functionality.
@@ -51,19 +49,11 @@ public class Widget1 extends AppWidgetProvider {
     double lastLatitude  =  myLatitude;
     String lastDistrict  = myDistrict;
 
-//    static long lastUpdateTime = System.currentTimeMillis();
     /**
      * 更新
      */
     public static final String ACTION_UPDATE = "action_update";
-//    /**
-//     * 无定位
-//     */
-//    public final int NO_LOCATION = 0x01;
-//    /**
-//     * 正在更新
-//     */
-//    public final int UPDATING = 0x02;
+
     /**
      * 更新成功
      */
@@ -106,14 +96,6 @@ public class Widget1 extends AppWidgetProvider {
                 ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) !=
                         PackageManager.PERMISSION_GRANTED) {
             Log.e(TAG, "getLocation: UPDATE_FAILED");
-//            ActivityCompat.requestPermissions(, new String[]{Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION}, 0);
-
-            // 打开APP首页的Intent
-//        PendingIntent launchPendingIntent = createLaunchPendingIntent(context);
-//        remoteViews.setOnClickPendingIntent(R.id.location, launchPendingIntent);
-//            Intent in = new Intent(context, MainActivity.class);
-//            in.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//            context.startActivity(in);
 
             String ss = DateUtils.getFormatDate(System.currentTimeMillis(), DateUtils.HHmm)+"定位错误";
             updateAppWidget(context, UPDATE_FAILED, ss, null);
@@ -141,7 +123,8 @@ public class Widget1 extends AppWidgetProvider {
         }
 
         //这个纬度下， 大约半径[5km]以内不用重新获取地名
-        if(Math.sqrt(Math.pow(myLongitude-lastLongitude,2)+Math.pow(myLatitude-lastLatitude, 2)) < 0.05){
+        if(Math.sqrt(Math.pow(myLongitude-lastLongitude,2)+Math.pow(myLatitude-lastLatitude, 2)) < 0.05
+                && !lastDistrict.equals("本地")){
             myDistrict = lastDistrict;
             getWeatherData(context);
             return;
@@ -183,9 +166,6 @@ public class Widget1 extends AppWidgetProvider {
                 getWeatherData(context);
             }
         });
-
-
-
     }
     /**
      * 获取天气数据
