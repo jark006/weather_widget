@@ -1,6 +1,6 @@
 package com.jark006.weather.bean;
 
 class WindRealtime {
-    double direction;
-    double speed;
+    public double speed;
+    public double direction;
 }

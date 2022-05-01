@@ -10,7 +10,8 @@ public class AddressComponent {
     public String towncode;
     public StreetNumber streetNumber;
     public String country;
-    public List<List> businessAreas;
+    public String township;
+    public List businessAreas;
     public Building building;
     public Neighborhood neighborhood;
     public String citycode;

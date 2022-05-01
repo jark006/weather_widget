@@ -15,6 +15,7 @@
     <string name="tomorrow">明天</string>
     <string name="big_tomorrow">后天</string>
     <string name="temp_example">25°</string>
+    <string name="other_info">80% PM25:20 PM10:20</string>
     <string name="tips">天气提醒</string>
     <string name="setting_permission">设置定位权限</string>
 
