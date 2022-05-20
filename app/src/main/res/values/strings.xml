@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">天气小部件</string>
+    <string name="app_name">小天气</string>
     <string name="add_widget">Add widget</string>
     <string name="app_widget_description">近期未来状况</string>
 

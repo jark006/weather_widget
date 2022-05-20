@@ -20,6 +20,7 @@ import androidx.core.app.ActivityCompat;
 import java.util.List;
 import com.google.gson.*;
 
+import com.jark006.weather.bean.AirQuality;
 import com.jark006.weather.bean.Daily;
 import com.jark006.weather.bean.DoubleValue;
 import com.jark006.weather.bean.Realtime;
@@ -43,19 +44,11 @@ public class Widget1 extends AppWidgetProvider {
     double lastLatitude  = myLatitude;
     String lastDistrict  = myDistrict;
 
-    /**
-     * 更新
-     */
     public static final String ACTION_UPDATE = "action_update";
 
-    /**
-     * 更新成功
-     */
     public final int UPDATE_SUCCESS = 0x03;
-    /**
-     * 更新失败
-     */
     public final int UPDATE_FAILED = 0x04;
+    public final int UPDATE_ONGOING = 0x05;
 
 
     @Override
@@ -66,6 +59,7 @@ public class Widget1 extends AppWidgetProvider {
         // 手动刷新
         if (ACTION_UPDATE.equals(action)) {
             Log.d(TAG, "onReceive: 手动刷新");
+            updateAppWidget(context, UPDATE_ONGOING, "更新中...", null);
             getLocation(context);
         }
     }
@@ -106,8 +100,8 @@ public class Widget1 extends AppWidgetProvider {
                         PackageManager.PERMISSION_GRANTED) {
             Log.e(TAG, "getLocation: UPDATE_FAILED");
 
-            String ss = DateUtils.getFormatDate(System.currentTimeMillis(), DateUtils.HHmm)+"定位错误";
-            updateAppWidget(context, UPDATE_FAILED, ss, null);
+            String errorInfo = DateUtils.getFormatDate(System.currentTimeMillis(), DateUtils.HHmm)+"定位错误，或无定位权限";
+            updateAppWidget(context, UPDATE_FAILED, errorInfo, null);
             return ;
         }
 
@@ -196,13 +190,13 @@ public class Widget1 extends AppWidgetProvider {
                     updateAppWidget(context, UPDATE_SUCCESS, myDistrict, res);
                 } catch (Exception e) {
                     Log.d(TAG, "getWeatherData: 解析数据失败 " + e);
-                    String failTips = DateUtils.getFormatDate(System.currentTimeMillis(), DateUtils.HHmm) + "解析数据失败";
-                    updateAppWidget(context, UPDATE_FAILED, failTips, null);
+                    String errorTips = DateUtils.getFormatDate(System.currentTimeMillis(), DateUtils.HHmm) + "解析数据失败";
+                    updateAppWidget(context, UPDATE_FAILED, errorTips, null);
                 }
             } catch (Exception e) {
                 Log.d(TAG, "getWeatherData: 网络错误 " + e);
-                String failTips = DateUtils.getFormatDate(System.currentTimeMillis(), DateUtils.HHmm) + "获取天气数据失败";
-                updateAppWidget(context, UPDATE_FAILED, failTips, null);
+                String errorTips = DateUtils.getFormatDate(System.currentTimeMillis(), DateUtils.HHmm) + "获取天气数据失败";
+                updateAppWidget(context, UPDATE_FAILED, errorTips, null);
             }
         }).start();
     }
@@ -252,6 +246,8 @@ public class Widget1 extends AppWidgetProvider {
 
         if (status == UPDATE_SUCCESS) {
             showAppWidgetData(context, remoteViews, district, weatherJson);
+        } else if (status == UPDATE_ONGOING) {
+            remoteViews.setTextViewText(R.id.updateTime, district);
         } else {
             remoteViews.setTextViewText(R.id.today_other, district);
         }
@@ -265,24 +261,22 @@ public class Widget1 extends AppWidgetProvider {
         StringBuilder hourTemp = new StringBuilder();
         List<DoubleValue> list = weatherBean.result.hourly.temperature;
         double gap = (list.get(1).value-list.get(0).value);
-        StringBuilder tmp = new StringBuilder();
+        hourTemp.append(list.get(1).datetime.substring(11,13)).append("时[");
         for (int i = 1; i <= 10; i++) {
-            tmp.append(list.get(i).value).append(' ');
             hourTemp.append(String.format("%2d° ", (int) (list.get(i).value-gap)));
         }
-        Log.w(TAG, "showAppWidgetData: "+tmp, null);
+        hourTemp.setCharAt(hourTemp.length()-1, ']');
+        hourTemp.append(list.get(10).datetime.substring(11,13)).append("时");
         remoteViews.setTextViewText(R.id.hour_temp, hourTemp.toString().trim());
 
         Realtime realtime = weatherBean.result.realtime;
         Daily daily = weatherBean.result.daily;
+        AirQuality air = realtime.air_quality;
 
         String forecast = weatherBean.result.forecast_keypoint;
         String description = weatherBean.result.minutely.description;
-        String otherInfo = String.format("%d%% pm2.5:%.0f pm10:%.0f o3:%.0f so2:%.0f no2:%.0f co:%.1f %s",
-                (int)(realtime.humidity*100), realtime.air_quality.pm25, realtime.air_quality.pm10,
-                realtime.air_quality.o3, realtime.air_quality.so2,
-                realtime.air_quality.no2,realtime.air_quality.co,
-                realtime.air_quality.description.chn);
+        String otherInfo = String.format("%d%% PM2.5:%.0f PM10:%.0f O₃:%.0f SO₂:%.0f NO₂:%.0f CO:%.1f %s",
+                (int)(realtime.humidity*100), air.pm25, air.pm10, air.o3, air.so2, air.no2,air.co, air.description.chn);
         remoteViews.setTextViewText(R.id.location, district);
         remoteViews.setTextViewText(R.id.today_other, forecast.equals(description)? otherInfo:forecast);
         String updateDate = DateUtils.getFormatDate(System.currentTimeMillis(), DateUtils.HHmm);
