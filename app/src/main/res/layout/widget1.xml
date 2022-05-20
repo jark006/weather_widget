@@ -1,5 +1,6 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/widget_rl"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -28,7 +29,8 @@
             android:gravity="center"
             android:text="@string/tips"
             android:textColor="@color/white"
-            android:textSize="11sp" />
+            android:textSize="10sp"
+            tools:ignore="SmallSp" />
 
     </LinearLayout>
 
@@ -171,8 +173,9 @@
         android:gravity="center"
         android:text="@string/other_info"
         android:textColor="@color/white"
-        android:textSize="11sp"
-        android:typeface="monospace" />
+        android:textSize="10sp"
+        android:typeface="monospace"
+        tools:ignore="SmallSp" />
 
     <TextView
         android:id="@+id/hour_temp"
@@ -181,8 +184,9 @@
         android:gravity="center"
         android:text="@string/tips"
         android:textColor="@color/white"
-        android:textSize="11sp"
-        android:typeface="monospace" />
+        android:textSize="10sp"
+        android:typeface="monospace"
+        tools:ignore="SmallSp" />
 
 
 </LinearLayout>

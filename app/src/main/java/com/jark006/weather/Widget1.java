@@ -2,6 +2,8 @@ package com.jark006.weather;
 
 import static android.content.ContentValues.TAG;
 
+import static com.jark006.weather.utils.DateUtils.getFormatDate;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.PendingIntent;
@@ -17,6 +19,8 @@ import android.os.Build;
 import android.util.Log;
 import android.widget.RemoteViews;
 import androidx.core.app.ActivityCompat;
+
+import java.util.Date;
 import java.util.List;
 import com.google.gson.*;
 
@@ -100,19 +104,30 @@ public class Widget1 extends AppWidgetProvider {
                         PackageManager.PERMISSION_GRANTED) {
             Log.e(TAG, "getLocation: UPDATE_FAILED");
 
-            String errorInfo = DateUtils.getFormatDate(System.currentTimeMillis(), DateUtils.HHmm)+"定位错误，或无定位权限";
+            String errorInfo = getFormatDate(System.currentTimeMillis(), DateUtils.HHmm)+"定位错误，或无定位权限";
             updateAppWidget(context, UPDATE_FAILED, errorInfo, null);
             return ;
         }
 
-        for (String provider : providers) {
-            Location l = locationManager.getLastKnownLocation(provider);
-            if (l == null) {
-                continue;
-            }
-            if (bestLocation == null || l.getAccuracy() < bestLocation.getAccuracy()) {
-                // Found best last known location: %s", l);
-                bestLocation = l;
+        //  优先使用融合定位
+        if (providers.contains("fused") && locationManager.getLastKnownLocation("fused") != null){
+            bestLocation = locationManager.getLastKnownLocation("fused");
+            Log.i(TAG, "getLocation: fused定位数据有效，优先使用");
+            Log.i(TAG, String.format("getLocation: %s Long:%f Lati:%f Acc:%.1f Time:%s",
+                    "fused", bestLocation.getLongitude(), bestLocation.getLatitude(), bestLocation.getAccuracy(),
+                    getFormatDate(new Date(bestLocation.getTime()), "yyyy-MM-dd HH:mm:ss")));
+        }else {
+            for (String provider : providers) {
+                Location location = locationManager.getLastKnownLocation(provider);
+                if (location == null) {
+                    continue;
+                }
+                Log.i(TAG, String.format("getLocation: %s Long:%f Lati:%f Acc:%.1f Time:%s",
+                        provider, location.getLongitude(), location.getLatitude(), location.getAccuracy(),
+                        getFormatDate(new Date(location.getTime()), "yyyy-MM-dd HH:mm:ss")));
+                if (bestLocation == null || location.getTime() > bestLocation.getTime()) {//最新位置，非最高精度
+                    bestLocation = location;
+                }
             }
         }
 
@@ -190,12 +205,12 @@ public class Widget1 extends AppWidgetProvider {
                     updateAppWidget(context, UPDATE_SUCCESS, myDistrict, res);
                 } catch (Exception e) {
                     Log.d(TAG, "getWeatherData: 解析数据失败 " + e);
-                    String errorTips = DateUtils.getFormatDate(System.currentTimeMillis(), DateUtils.HHmm) + "解析数据失败";
+                    String errorTips = getFormatDate(System.currentTimeMillis(), DateUtils.HHmm) + "解析数据失败";
                     updateAppWidget(context, UPDATE_FAILED, errorTips, null);
                 }
             } catch (Exception e) {
                 Log.d(TAG, "getWeatherData: 网络错误 " + e);
-                String errorTips = DateUtils.getFormatDate(System.currentTimeMillis(), DateUtils.HHmm) + "获取天气数据失败";
+                String errorTips = getFormatDate(System.currentTimeMillis(), DateUtils.HHmm) + "获取天气数据失败";
                 updateAppWidget(context, UPDATE_FAILED, errorTips, null);
             }
         }).start();
@@ -279,7 +294,7 @@ public class Widget1 extends AppWidgetProvider {
                 (int)(realtime.humidity*100), air.pm25, air.pm10, air.o3, air.so2, air.no2,air.co, air.description.chn);
         remoteViews.setTextViewText(R.id.location, district);
         remoteViews.setTextViewText(R.id.today_other, forecast.equals(description)? otherInfo:forecast);
-        String updateDate = DateUtils.getFormatDate(System.currentTimeMillis(), DateUtils.HHmm);
+        String updateDate = getFormatDate(System.currentTimeMillis(), DateUtils.HHmm);
         remoteViews.setTextViewText(R.id.updateTime, context.getString(R.string.widget_update_time, updateDate));
         remoteViews.setTextViewText(R.id.today_tem, (int) realtime.temperature + "°");
         remoteViews.setTextViewText(R.id.description, description);
