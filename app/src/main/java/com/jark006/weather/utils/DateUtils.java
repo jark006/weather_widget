@@ -26,7 +26,10 @@ public class DateUtils {
         SimpleDateFormat sdf = new SimpleDateFormat(format, Locale.CHINA);
         return sdf.format(date);
     }
-
+    public static String getLogTime(){
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.CHINA);
+        return sdf.format(new Date());
+    }
     public static Date getDate(String date, String format) {
         SimpleDateFormat sdf = new SimpleDateFormat(format, Locale.CHINA);
         try {

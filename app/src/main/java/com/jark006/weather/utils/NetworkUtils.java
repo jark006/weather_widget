@@ -4,38 +4,54 @@ import static android.content.ContentValues.TAG;
 
 import android.util.Log;
 
+import androidx.annotation.Nullable;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Locale;
+
+import okhttp3.Call;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 /**
- * Created by JARK006 on 2017/2/4/0004.
+ * Created by JARK006 on 2022-5-22 01:59:13
  */
 
 public class NetworkUtils {
 
+    @Nullable
+    public static String getDataxx(String url) {
+        OkHttpClient okHttpClient = new OkHttpClient();
+        final Request request = new Request.Builder()
+                .url(url)
+                .build();
+        String res = null;
+        try {
+            Response response = okHttpClient.newCall(request).execute();
+            assert response.body() != null;
+            res =  response.body().string();
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+        return res;
+    }
+
     public static String getData(String link) {
         try {
             URL url = new URL(link);
-            Log.i(TAG, "NetworkUtils 1");
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setConnectTimeout(5 * 1000);
 
-            Log.i(TAG, "NetworkUtils 2");
-            if (conn.getResponseCode() == 200) {  //返回码是200，网络正常
+            int resCode = conn.getResponseCode();
+            if (resCode == 200) {
                 InputStream is = conn.getInputStream();
-                Log.i(TAG, "NetworkUtils 3");
                 ByteArrayOutputStream os = new ByteArrayOutputStream();
                 int len;
                 byte[] buffer = new byte[204800];  //200kb
-                Log.i(TAG, "NetworkUtils 4");
                 while ((len = is.read(buffer)) != -1) {
                     os.write(buffer, 0, len);
                 }
@@ -43,8 +59,7 @@ public class NetworkUtils {
                 os.close();
                 return os.toString();
             } else {
-                //返回码不是200，网络异常
-                Log.i(TAG, "返回码不是200，网络异常");
+                Log.i(TAG,  String.format("返回码:%d，网络异常", resCode));
                 return null;
             }
         } catch (IOException e) {

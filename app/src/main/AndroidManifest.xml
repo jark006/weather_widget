@@ -11,6 +11,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.BIND_APPWIDGET"
         tools:ignore="ProtectedPermissions" />
+
     <application
         android:usesCleartextTraffic="true"
         android:allowBackup="true"
@@ -43,6 +44,9 @@
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/>
             </intent-filter>
         </activity>
+        <service android:name="com.amap.api.location.APSService"></service>
+        <meta-data android:name="com.amap.api.v2.apikey" android:value="key">50407ea2ca3f8f53e63b5524f791f0fe</meta-data>
+
     </application>
 
 </manifest>
