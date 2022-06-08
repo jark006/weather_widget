@@ -1,6 +1,7 @@
 package com.jark006.weather.bean;
 
 public class Result {
+    public Alert alert;
     public Realtime realtime;
     public Minutely minutely;
     public Hourly hourly;

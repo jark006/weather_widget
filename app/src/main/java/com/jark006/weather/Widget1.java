@@ -1,16 +1,21 @@
 package com.jark006.weather;
 
 import static android.content.ContentValues.TAG;
+import static android.content.Context.NOTIFICATION_SERVICE;
 import static com.jark006.weather.utils.DateUtils.getFormatDate;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
@@ -20,15 +25,19 @@ import android.widget.RemoteViews;
 
 import androidx.core.app.ActivityCompat;
 
+import com.amap.api.location.AMapLocationClient;
+import com.amap.api.location.AMapLocationClientOption;
+import com.amap.api.location.AMapLocationListener;
 import com.google.gson.Gson;
 import com.jark006.weather.bean.AirQuality;
+import com.jark006.weather.bean.CodeName;
 import com.jark006.weather.bean.Daily;
 import com.jark006.weather.bean.DoubleValue;
 import com.jark006.weather.bean.Realtime;
 import com.jark006.weather.bean.Skycon;
 import com.jark006.weather.bean.Temperature;
+import com.jark006.weather.bean.WarnInfo;
 import com.jark006.weather.bean.WeatherBean;
-import com.jark006.weather.district.district;
 import com.jark006.weather.utils.DateUtils;
 import com.jark006.weather.utils.ImageUtils;
 import com.jark006.weather.utils.NetworkUtils;
@@ -40,24 +49,33 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.Date;
 import java.util.List;
+import java.util.zip.CRC32;
 
 /**
  * 天气小部件
  */
 public class Widget1 extends AppWidgetProvider {
-    double curLongitude = 113.381917;//默认在广州大学城
-    double curLatitude = 23.039316;
-    String myDistrict = "广州大学城";
+    final double finalLongitude = 113.381917;//默认在广州大学城
+    final double finalLatitude = 23.039316;
+    double curLongitude = finalLongitude;
+    double curLatitude = finalLatitude;
 
-    double lastLongitude = curLongitude;
-    double lastLatitude = curLatitude;
-    String lastDistrict = myDistrict;
     String locationTime = "00-00 00:00";
     public static final String ACTION_UPDATE = "action_update";
 
     public final int UPDATE_SUCCESS = 0x03;
     public final int UPDATE_FAILED = 0x04;
     public final int UPDATE_ONGOING = 0x05;
+
+    AMapLocationClient mLocationClient;
+
+    @Override
+    public void onEnabled(Context context) {
+        super.onEnabled(context);
+
+
+        getLocationAmap(context);
+    }
 
 
     @Override
@@ -68,171 +86,112 @@ public class Widget1 extends AppWidgetProvider {
         // 手动刷新
         if (ACTION_UPDATE.equals(action)) {
             Log.d(TAG, "onReceive: 手动刷新");
-            updateAppWidget(context, UPDATE_ONGOING, "更新中...", null);
-            getLocation(context);
+            updateAppWidget(context, UPDATE_ONGOING, "更新中...");
+            getLocationAmap(context);
         }
     }
-
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         Log.d(TAG, "onUpdate: 周期刷新");
-        getLocation(context);
+        getLocationAmap(context);
     }
 
+    void getLocationAmap(Context context) {
+//        //context.getPackageName(),
+        //PackageManager.GET_META_DATA);
 
-    static final double EARTH_RADIUS = 6378.137;
+        AMapLocationClient.updatePrivacyShow(context, true, true);
+        AMapLocationClient.updatePrivacyAgree(context, true);
+//        AMapLocationClient.setApiKey("50407ea2ca3f8f53e63b5524f791f0fe");
 
-    static double rad(double d) {
-        return d * Math.PI / 180.0;
-    }
-
-    // Unit : Km
-    public static double GetDistance(double lat1, double lng1, double lat2, double lng2) {
-        double radLat1 = rad(lat1);
-        double radLat2 = rad(lat2);
-        double a = radLat1 - radLat2;
-        double b = rad(lng1) - rad(lng2);
-        double s = 2 * Math.asin(Math.sqrt(Math.pow(Math.sin(a / 2), 2) +
-                Math.cos(radLat1) * Math.cos(radLat2) * Math.pow(Math.sin(b / 2), 2)));
-        s = s * EARTH_RADIUS;
-        return s;
-    }
-
-    private void getLocation(final Context context) {
-        LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-        List<String> providers = locationManager.getProviders(true);
-        Location bestLocation = null;
-        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) !=
-                PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) !=
-                        PackageManager.PERMISSION_GRANTED) {
-
-            String errorTips = getFormatDate(System.currentTimeMillis(), DateUtils.HHmm) + "定位错误，或无定位权限";
-            Log.e(TAG, "getWeatherData: " + errorTips);
-            updateAppWidget(context, UPDATE_FAILED, errorTips, null);
+        try {
+            ApplicationInfo appInfo = context.getPackageManager().getApplicationInfo(context.getPackageName(),
+                    PackageManager.GET_META_DATA);
+            AMapLocationClient.setApiKey(appInfo.metaData.getString("com.amap.api.v2.apikey"));
+        } catch (Exception e) {
+            e.printStackTrace();
             return;
         }
+        //声明AMapLocationClient类对象
+        //声明定位回调监听器
+        @SuppressLint("DefaultLocale")
+        AMapLocationListener mLocationListener = aMapLocation -> {
+            if (aMapLocation.getErrorCode() == 0) {
 
-        //  优先使用融合定位
-        if (providers.contains("fused") && locationManager.getLastKnownLocation("fused") != null) {
-            bestLocation = locationManager.getLastKnownLocation("fused");
-            @SuppressLint("DefaultLocale")
-            String log = String.format("getLocation:fused定位数据有效，优先使用 Long:%f Lati:%f Acc:%.1f Time:%s",
-                    bestLocation.getLongitude(), bestLocation.getLatitude(), bestLocation.getAccuracy(),
-                    getFormatDate(new Date(bestLocation.getTime()), "yyyy-MM-dd HH:mm:ss"));
-
-            Log.i(TAG, log);
-            saveLog(context, "log.log", log);
-
-        } else {
-            for (String provider : providers) {
-                Location location = locationManager.getLastKnownLocation(provider);
-                if (location == null) {
-                    continue;
-                }
-                Log.i(TAG, String.format("getLocation: %s Long:%f Lati:%f Acc:%.1f Time:%s",
-                        provider, location.getLongitude(), location.getLatitude(), location.getAccuracy(),
-                        getFormatDate(new Date(location.getTime()), "yyyy-MM-dd HH:mm:ss")));
-                if (bestLocation == null || location.getTime() > bestLocation.getTime()) {//最新位置，非最高精度
-                    bestLocation = location;
-                }
-            }
-        }
-
-        if (bestLocation != null) {
-            curLongitude = bestLocation.getLongitude();
-            curLatitude = bestLocation.getLatitude();
-            myDistrict = "本地";
-            Log.i(TAG, "bestLocation: " + curLongitude + "," + curLatitude);
-            locationTime = getFormatDate(new Date(bestLocation.getTime()), "MM-dd HH:mm");
-        } else {
-            Log.i(TAG, "LocationFail,Using default:" + curLongitude + "," + curLatitude);
-        }
-
-        //这个纬度下， 大约半径[5km]以内不用重新获取地名
-        if (GetDistance(curLatitude, curLongitude, lastLatitude, lastLongitude) < 5) {
-            Log.i(TAG, "getLocation: 地点变化不大");
-            if (lastDistrict.equals("本地")) {
-                Log.i(TAG, "getLocation: 地名错了");
+                curLongitude = aMapLocation.getLongitude();
+                curLatitude = aMapLocation.getLatitude();
+                locationTime = getFormatDate(new Date(aMapLocation.getTime()), "MM-dd HH:mm");
+                Log.i(TAG, "Location:" + curLongitude + "," + curLatitude + "," + aMapLocation.getAddress());
             } else {
-                Log.i(TAG, "getLocation: " + lastDistrict);
-                myDistrict = lastDistrict;
-                getWeatherData(context);
-                return;
+
+                curLongitude = finalLongitude;
+                curLatitude = finalLatitude;
+
+                //定位失败时，可通过ErrCode（错误码）信息来确定失败的原因，errInfo是错误信息，详见错误码表。
+                String errorTips = getFormatDate(System.currentTimeMillis(), DateUtils.HHmm)
+                        + ", location Error, ErrCode:" + aMapLocation.getErrorCode()
+                        + ", errInfo:" + aMapLocation.getErrorInfo();
+                Log.e(TAG, "getLocationAmap: " + errorTips);
+                saveLog(context, "log.log", errorTips);
+                Log.i(TAG, "LocationFail,Using default:" + curLongitude + "," + curLatitude);
             }
-        } else {
-            Log.i(TAG, "getLocation: 地点变化了");
-            lastLongitude = curLongitude;
-            lastLatitude = curLatitude;
+            getWeatherData(context);
+        };
+
+        //初始化定位
+        try {
+            mLocationClient = new AMapLocationClient(context);
+        } catch (Exception e) {
+            String errorTips = getFormatDate(System.currentTimeMillis(), DateUtils.HHmm)
+                    + "mLocationClient = new AMapLocationClient(context) Fail.";
+            Log.e(TAG, "getLocationAmap: " + errorTips);
+            updateAppWidget(context, UPDATE_FAILED, errorTips);
+            e.printStackTrace();
+            return;
         }
+        //设置定位回调监听
+        mLocationClient.setLocationListener(mLocationListener);
 
-        //https://restapi.amap.com/v3/geocode/regeo?key=c2844d38363cae2a8a52eb9fa18a2ebc&location=
-        new Thread(() -> {
-            @SuppressLint("DefaultLocale")
-            String link = String.format("https://restapi.amap.com/v3/geocode/regeo?key=c2844d38363cae2a8a52eb9fa18a2ebc&location=%f,%f",
-                    curLongitude, curLatitude);
+        //声明AMapLocationClientOption对象
+        AMapLocationClientOption mLocationOption;
+        //初始化AMapLocationClientOption对象
+        mLocationOption = new AMapLocationClientOption();
 
-            int retryTimes = 3;
-            String res = null;
-            for (int i = 1; i <= retryTimes; i++) {
-                try {
-                    res = NetworkUtils.getData(link);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    @SuppressLint("DefaultLocale")
-                    String log = String.format("getData: 第%d次网络异常, 剩余%d次", i, retryTimes - i);
-                    Log.e(TAG, log + e);
-                }
-                if (res != null)
-                    break;
+        AMapLocationClientOption option = new AMapLocationClientOption();
+        option.setLocationPurpose(AMapLocationClientOption.AMapLocationPurpose.SignIn);
+        mLocationClient.setLocationOption(option);
+        //设置场景模式后最好调用一次stop，再调用start以保证场景模式生效
+        mLocationClient.stopLocation();
 
-                @SuppressLint("DefaultLocale")
-                String log = String.format("getData: 第%d次ResponseNull, 剩余%d次", i, retryTimes - i);
-                Log.e(TAG, log);
-                try {
-                    Thread.sleep(500);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-            if (res == null) {
-                Log.e(TAG, "getLocation: 使用默认：" + myDistrict);
-                getWeatherData(context);
-                return;
-            }
+        //设置定位模式为AMapLocationMode.Battery_Saving，低功耗模式。
+        mLocationOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Battery_Saving);
 
-            try {
-                district district = new Gson().fromJson(res, district.class);
-                if (district.regeocode.addressComponent.district.length() > 1) {
-                    myDistrict = district.regeocode.addressComponent.district;
-                } else if (district.regeocode.addressComponent.city.length() > 1) {
-                    myDistrict = district.regeocode.addressComponent.city;
-                } else {
-                    myDistrict = district.regeocode.addressComponent.province;
-                }
-                lastDistrict = myDistrict;
-                Log.i(TAG, "getLocation定位:" + myDistrict);
+        //获取一次定位结果：
+        //该方法默认为false。
+        mLocationOption.setOnceLocation(true);
 
-            } catch (Exception e) {
-                Log.e(TAG, "getLocation: 解析城市名数据失败 " + e);
-                Log.e(TAG, "getLocation: 使用默认：" + myDistrict);
-                getWeatherData(context);
-            }
-        }).start();
+        //获取最近3s内精度最高的一次定位结果：
+        //设置setOnceLocationLatest(boolean b)接口为true，启动定位时SDK会返回最近3s内精度最高的一次定位结果。如果设置其为true，setOnceLocation(boolean b)接口也会被设置为true，反之不会，默认为false。
+        mLocationOption.setOnceLocationLatest(true);
+
+
+        //给定位客户端对象设置定位参数
+        mLocationClient.setLocationOption(mLocationOption);
+        //启动定位
+        mLocationClient.startLocation();
 
     }
-
 
     /**
      * 获取天气数据
-     * <a href=https://api.caiyunapp.com/v2.5/wh9aWLYieE1akfGi/113.381429,23.039126/weather.json?dailysteps=6>链接</a>
+     * <a href=https://api.caiyunapp.com/v2.6/wh9aWLYieE1akfGi/113.381429,23.039126/weather.json?alert=true>链接</a>
      */
     private void getWeatherData(final Context context) {
 
         new Thread(() -> {
             @SuppressLint("DefaultLocale")
-            String link = String.format("https://api.caiyunapp.com/v2.5/wh9aWLYieE1akfGi/%f,%f/weather.json?dailysteps=6",
+            String link = String.format("https://api.caiyunapp.com/v2.6/wh9aWLYieE1akfGi/%f,%f/weather.json?alert=true",
                     curLongitude, curLatitude);
 
             int retryTimes = 3;
@@ -265,17 +224,17 @@ public class Widget1 extends AppWidgetProvider {
                 String errorTips = getFormatDate(System.currentTimeMillis(), DateUtils.HHmm) + "获取天气数据失败";
                 Log.e(TAG, "getWeatherData: " + errorTips);
                 saveLog(context, "log.log", "getWeatherData: " + errorTips);
-                updateAppWidget(context, UPDATE_FAILED, errorTips, null);
+                updateAppWidget(context, UPDATE_FAILED, errorTips);
                 return;
             }
 
             try {
-                updateAppWidget(context, UPDATE_SUCCESS, myDistrict, res);
+                updateAppWidget(context, UPDATE_SUCCESS, res);
             } catch (Exception e) {
                 String errorTips = getFormatDate(System.currentTimeMillis(), DateUtils.HHmm) + "解析数据失败";
                 Log.e(TAG, "getWeatherData: " + errorTips + e);
                 saveLog(context, "log.log", "getWeatherData: " + errorTips + e);
-                updateAppWidget(context, UPDATE_FAILED, errorTips, null);
+                updateAppWidget(context, UPDATE_FAILED, errorTips);
             }
         }).start();
     }
@@ -309,10 +268,9 @@ public class Widget1 extends AppWidgetProvider {
      *
      * @param status      更新状态
      * @param context     上下文
-     * @param district    定位数据
      * @param weatherJson 天气数据
      */
-    private void updateAppWidget(Context context, int status, String district, String weatherJson) {
+    private void updateAppWidget(Context context, int status, String weatherJson) {
         ComponentName componentName = new ComponentName(context, this.getClass());
         RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.widget1);
 
@@ -324,18 +282,15 @@ public class Widget1 extends AppWidgetProvider {
         remoteViews.setOnClickPendingIntent(R.id.widget_rl, updatePendingIntent);
 
         if (status == UPDATE_SUCCESS) {
-            showAppWidgetData(context, remoteViews, district, weatherJson);
-        } else if (status == UPDATE_ONGOING) {
-            remoteViews.setTextViewText(R.id.today_other, district);
+            showAppWidgetData(context, remoteViews, weatherJson);
         } else {
-            remoteViews.setTextViewText(R.id.today_other, district);
+            remoteViews.setTextViewText(R.id.today_other, weatherJson);
         }
         AppWidgetManager.getInstance(context).updateAppWidget(componentName, remoteViews);
     }
 
-
     @SuppressLint("DefaultLocale")
-    private void showAppWidgetData(Context context, RemoteViews remoteViews, String district, String weatherJson) {
+    private void showAppWidgetData(Context context, RemoteViews remoteViews, String weatherJson) {
         WeatherBean weatherBean = new Gson().fromJson(weatherJson, WeatherBean.class);
         StringBuilder hourTemp = new StringBuilder();
         List<DoubleValue> list = weatherBean.result.hourly.temperature;
@@ -352,6 +307,11 @@ public class Widget1 extends AppWidgetProvider {
         Daily daily = weatherBean.result.daily;
         AirQuality air = realtime.air_quality;
 
+        List<CodeName> adcodes = weatherBean.result.alert.adcodes;
+        String district = "本地";
+        if (adcodes.size() > 0)
+            district = adcodes.get(adcodes.size() - 1).name;
+
         String forecast = weatherBean.result.forecast_keypoint;
         String description = weatherBean.result.minutely.description;
         String otherInfo = String.format("%d%% PM2.5:%.0f PM10:%.0f O₃:%.0f SO₂:%.0f NO₂:%.0f CO:%.1f %s",
@@ -359,8 +319,8 @@ public class Widget1 extends AppWidgetProvider {
         remoteViews.setTextViewText(R.id.location, district);
         remoteViews.setTextViewText(R.id.today_other, forecast.equals(description) ? otherInfo : forecast);
         String updateDate = getFormatDate(System.currentTimeMillis(), DateUtils.HHmm);
-        remoteViews.setTextViewText(R.id.updateTime, context.getString(R.string.widget_update_time, updateDate)+
-                "\n"+locationTime);
+        remoteViews.setTextViewText(R.id.updateTime, context.getString(R.string.widget_update_time, updateDate) +
+                "\n" + locationTime);
         remoteViews.setTextViewText(R.id.today_tem, (int) realtime.temperature + "°");
         remoteViews.setTextViewText(R.id.description, description);
 
@@ -392,6 +352,38 @@ public class Widget1 extends AppWidgetProvider {
 
         // 设置背景
         remoteViews.setInt(R.id.widget_rl, "setBackgroundResource", ImageUtils.getBgResourceId(weather, intensity, isDay));
+
+        //预警信息通知
+        List<WarnInfo> warnInfo = weatherBean.result.alert.content;
+        for (WarnInfo info : warnInfo) {
+
+            CRC32 crc32 = new CRC32();
+            crc32.update(info.alertId.getBytes());
+
+            String description1 = info.description;
+            Log.i(TAG, "showAppWidgetData: " + description1);
+            String channelId = info.alertId;
+
+            RemoteViews cusRemoveExpandView = new RemoteViews(context.getPackageName(), R.layout.layout_notify_large);
+            cusRemoveExpandView.setTextViewText(R.id.title, info.title);
+            cusRemoveExpandView.setTextViewText(R.id.content, info.description);
+
+            Notification notification = new Notification.Builder(context, channelId)
+                    .setWhen(System.currentTimeMillis())
+                    .setSmallIcon(R.drawable.ic_sunny)
+                    .setContentTitle(info.location + " " + info.status)
+                    .setContentText(info.title)
+                    .setStyle(new Notification.DecoratedCustomViewStyle())
+                    .setCustomBigContentView(cusRemoveExpandView)
+                    .build();
+            // 2. 获取系统的通知管理器
+            NotificationManager notificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
+            // 3. 创建NotificationChannel(这里传入的channelId要和创建的通知channelId一致，才能为指定通知建立通知渠道)
+            NotificationChannel channel = new NotificationChannel(channelId, channelId, NotificationManager.IMPORTANCE_DEFAULT);
+            notificationManager.createNotificationChannel(channel);
+            // 4. 发送通知
+            notificationManager.notify((int) crc32.getValue(), notification);
+        }
     }
 
     public void saveLog(Context context, String path, String text) {
@@ -401,14 +393,14 @@ public class Widget1 extends AppWidgetProvider {
             int logFileMode = Context.MODE_APPEND;  //默认模式 追加日志
             File logFile = context.getFileStreamPath(path);
 
-            if (logFile.length() > 100*1024){  //超过100kb就清空覆盖
+            if (logFile.length() > 100 * 1024) {  //超过100kb就清空覆盖
                 logFileMode = Context.MODE_PRIVATE;
             }
 
             FileOutputStream fileOut = context.openFileOutput(path, logFileMode);
             BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(fileOut));
 
-            bufferedWriter.write(DateUtils.getLogTime() + ": "+text + "\n");
+            bufferedWriter.write(DateUtils.getLogTime() + ": " + text + "\n");
             bufferedWriter.close();
 
         } catch (IOException e) {
