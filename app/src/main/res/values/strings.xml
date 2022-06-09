@@ -17,5 +17,6 @@
     <string name="other_info">80% PM25:20 PM10:20</string>
     <string name="tips">若无法使用，请移除这个小部件，然后添加新的</string>
     <string name="setting_permission">设置定位权限</string>
+    <string name="icon_discript">预警级别图标</string>
 
 </resources>

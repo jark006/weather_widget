@@ -7,7 +7,7 @@
         <entry key="..\:/AndroidWSP/weather/app/src/main/res/layout/widget1.xml" value="0.33" />
         <entry key="..\:/AndroidWSP/weather_widget/app/src/main/res/layout/activity_dialog_info.xml" value="0.1287037037037037" />
         <entry key="..\:/AndroidWSP/weather_widget/app/src/main/res/layout/activity_main.xml" value="0.33" />
-        <entry key="..\:/AndroidWSP/weather_widget/app/src/main/res/layout/layout_notify_large.xml" value="0.12777777777777777" />
+        <entry key="..\:/AndroidWSP/weather_widget/app/src/main/res/layout/layout_notify_large.xml" value="0.4525277435265105" />
         <entry key="..\:/AndroidWSP/weather_widget/app/src/main/res/layout/layout_notify_small.xml" value="0.12777777777777777" />
         <entry key="..\:/AndroidWSP/weather_widget/app/src/main/res/layout/widget1.xml" value="0.33" />
         <entry key="..\:/AndroidWSP/weather_widget/app/src/main/res/xml/network_security_config.xml" value="0.18645833333333334" />
@@ -19,5 +19,12 @@
   </component>
   <component name="ProjectType">
     <option name="id" value="Android" />
+  </component>
+  <component name="VisualizationToolProject">
+    <option name="state">
+      <ProjectState>
+        <option name="scale" value="0.2716506291635825" />
+      </ProjectState>
+    </option>
   </component>
 </project>

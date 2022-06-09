@@ -4,7 +4,6 @@ import static android.content.ContentValues.TAG;
 import static android.content.Context.NOTIFICATION_SERVICE;
 import static com.jark006.weather.utils.DateUtils.getFormatDate;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -17,13 +16,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
-import android.location.Location;
-import android.location.LocationManager;
 import android.os.Build;
 import android.util.Log;
 import android.widget.RemoteViews;
-
-import androidx.core.app.ActivityCompat;
 
 import com.amap.api.location.AMapLocationClient;
 import com.amap.api.location.AMapLocationClientOption;
@@ -58,6 +53,7 @@ import java.util.zip.CRC32;
 public class Widget1 extends AppWidgetProvider {
     final double finalLongitude = 113.381917;//默认在广州大学城
     final double finalLatitude = 23.039316;
+
     double curLongitude = finalLongitude;
     double curLatitude = finalLatitude;
 
@@ -67,8 +63,35 @@ public class Widget1 extends AppWidgetProvider {
     public final int UPDATE_SUCCESS = 0x03;
     public final int UPDATE_FAILED = 0x04;
     public final int UPDATE_ONGOING = 0x05;
-    static HashSet<String> hasNotify = new HashSet<>();;
+    static HashSet<String> hasNotify = new HashSet<>();
     AMapLocationClient mLocationClient;
+
+    // 01台风 02暴雨 ... 18沙尘
+    final String[] warnTypeStr = {
+            "其他", "台风", "暴雨", "暴雪", "寒潮", "大风",
+            "沙尘暴", "高温", "干旱", "雷电", "冰雹", "霜冻",
+            "大雾", "霾", "道路结冰", "森林火灾", "雷雨大风",
+            "春季沙尘天气趋势预警", "沙尘"
+    };
+    //00白色 ... 04红色
+    final String[] warnLevelStr = {"白色预警", "蓝色预警", "黄色预警", "橙色预警", "红色预警"};
+
+    final int[] IMPORTANT_INT = {
+            NotificationManager.IMPORTANCE_NONE,
+            NotificationManager.IMPORTANCE_MIN,
+            NotificationManager.IMPORTANCE_LOW,
+            NotificationManager.IMPORTANCE_DEFAULT,
+            NotificationManager.IMPORTANCE_HIGH,
+            NotificationManager.IMPORTANCE_MAX,
+    };
+
+    final int[] warnIconIndex = {
+            R.drawable.ic_warning_white,
+            R.drawable.ic_warning_blue,
+            R.drawable.ic_warning_yellow,
+            R.drawable.ic_warning_orange,
+            R.drawable.ic_warning_red,
+    };
 
     @Override
     public void onEnabled(Context context) {
@@ -119,13 +142,11 @@ public class Widget1 extends AppWidgetProvider {
         @SuppressLint("DefaultLocale")
         AMapLocationListener mLocationListener = aMapLocation -> {
             if (aMapLocation.getErrorCode() == 0) {
-
                 curLongitude = aMapLocation.getLongitude();
                 curLatitude = aMapLocation.getLatitude();
                 locationTime = getFormatDate(new Date(aMapLocation.getTime()), "MM-dd HH:mm");
                 Log.i(TAG, "Location:" + curLongitude + "," + curLatitude + "," + aMapLocation.getAddress());
             } else {
-
                 curLongitude = finalLongitude;
                 curLatitude = finalLatitude;
 
@@ -362,18 +383,42 @@ public class Widget1 extends AppWidgetProvider {
 
             hasNotify.add(info.alertId);
 
-            String description1 = info.description;
-            Log.i(TAG, "showAppWidgetData: " + description1);
+            Log.i(TAG, "showAppWidgetData: " + info.description);
+
+            int warnLevel = 0;
+            String title = info.location + " " + info.status;
+            int importantLevel = NotificationManager.IMPORTANCE_DEFAULT;
+
+            try {
+                int warnType = Integer.parseInt(info.code); // 2位预警类型编码 ＋ 2位预警级别编码
+                warnLevel = warnType % 100; // 预警级别 00 ~ 04
+
+                if (warnLevel > 4)
+                    warnLevel = 4;
+                else if (warnLevel < 0)
+                    warnLevel = 0;
+
+                warnType /= 100; // 预警类型 01 ~ 18， 00未知
+                if (warnType < 1 || warnType > 18)
+                    warnType = 0;
+                title = info.location + " " + warnTypeStr[warnType] + " " + info.status;
+                importantLevel = IMPORTANT_INT[warnLevel + 1];
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
             String channelId = info.alertId;
 
             RemoteViews cusRemoveExpandView = new RemoteViews(context.getPackageName(), R.layout.layout_notify_large);
             cusRemoveExpandView.setTextViewText(R.id.title, info.title);
             cusRemoveExpandView.setTextViewText(R.id.content, info.description);
+            cusRemoveExpandView.setImageViewResource(R.id.icon, warnIconIndex[warnLevel]);
 
             Notification notification = new Notification.Builder(context, channelId)
                     .setWhen(System.currentTimeMillis())
                     .setSmallIcon(R.drawable.ic_sunny)
-                    .setContentTitle(info.location + " " + info.status)
+//                    .setLargeIcon(BitmapFactory.decodeResource(context.getResources(), warnIcoIndex[warnLevel]))
+                    .setContentTitle(title)
                     .setContentText(info.title)
                     .setStyle(new Notification.DecoratedCustomViewStyle())
                     .setCustomBigContentView(cusRemoveExpandView)
@@ -381,7 +426,7 @@ public class Widget1 extends AppWidgetProvider {
             // 2. 获取系统的通知管理器
             NotificationManager notificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
             // 3. 创建NotificationChannel(这里传入的channelId要和创建的通知channelId一致，才能为指定通知建立通知渠道)
-            NotificationChannel channel = new NotificationChannel(channelId, channelId, NotificationManager.IMPORTANCE_DEFAULT);
+            NotificationChannel channel = new NotificationChannel(channelId, warnLevelStr[warnLevel], importantLevel);
             notificationManager.createNotificationChannel(channel);
             // 4. 发送通知
             CRC32 crc32 = new CRC32();
