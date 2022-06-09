@@ -48,6 +48,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.zip.CRC32;
 
@@ -66,7 +67,7 @@ public class Widget1 extends AppWidgetProvider {
     public final int UPDATE_SUCCESS = 0x03;
     public final int UPDATE_FAILED = 0x04;
     public final int UPDATE_ONGOING = 0x05;
-
+    static HashSet<String> hasNotify = new HashSet<>();;
     AMapLocationClient mLocationClient;
 
     @Override
@@ -356,9 +357,10 @@ public class Widget1 extends AppWidgetProvider {
         //预警信息通知
         List<WarnInfo> warnInfo = weatherBean.result.alert.content;
         for (WarnInfo info : warnInfo) {
+            if (hasNotify.contains(info.alertId))
+                continue;
 
-            CRC32 crc32 = new CRC32();
-            crc32.update(info.alertId.getBytes());
+            hasNotify.add(info.alertId);
 
             String description1 = info.description;
             Log.i(TAG, "showAppWidgetData: " + description1);
@@ -382,6 +384,8 @@ public class Widget1 extends AppWidgetProvider {
             NotificationChannel channel = new NotificationChannel(channelId, channelId, NotificationManager.IMPORTANCE_DEFAULT);
             notificationManager.createNotificationChannel(channel);
             // 4. 发送通知
+            CRC32 crc32 = new CRC32();
+            crc32.update(info.alertId.getBytes());
             notificationManager.notify((int) crc32.getValue(), notification);
         }
     }

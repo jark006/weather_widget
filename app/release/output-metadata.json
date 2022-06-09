@@ -11,9 +11,9 @@
       "type": "SINGLE",
       "filters": [],
       "attributes": [],
-      "versionCode": 12,
-      "versionName": "1.2",
-      "outputFile": "天气小部件_1.2版_2022-04-02_release.apk"
+      "versionCode": 13,
+      "versionName": "1.3",
+      "outputFile": "天气小部件_1.3版_2022-06-08_release.apk"
     }
   ],
   "elementType": "File"
