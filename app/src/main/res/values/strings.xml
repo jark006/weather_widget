@@ -2,21 +2,21 @@
     <string name="app_name">小天气</string>
 
     <string name="widget_location_failed">定位失败</string>
-    <string name="widget_no_location_permission">请打开APP授予定位权限</string>
+    <string name="widget_no_location_permission">请打开设置授予APP定位权限</string>
     <string name="widget_unknown">未知</string>
-    <string name="widget_updating">正在更新</string>
+    <string name="widget_updating">更新中。。。</string>
     <string name="widget_update_failed">更新失败</string>
-    <string name="widget_update_time">%1$s 更新</string>
-    <string name="widget_tomorrow">明天</string>
-    <string name="updateTime">06:00\n06–13 03:10</string>
-    <string name="district">地区</string>
+    <string name="widget_update_time">更新</string>
+    <string name="updateTime" translatable="false">06:00\n06–13 15:10</string>
+    <string name="district">本地</string>
     <string name="tomorrow">明天</string>
     <string name="big_tomorrow">后天</string>
-    <string name="temp_example">25°</string>
-    <string name="temp_rang_example">22 ~ 28°</string>
-    <string name="other_info">80% PM25:20 PM10:20</string>
-    <string name="tips">若无法使用，请移除这个小部件，然后添加新的</string>
-    <string name="setting_permission">设置定位权限</string>
-    <string name="icon_discript">预警级别图标</string>
+    <string name="temp_example" translatable="false">25°</string>
+    <string name="temp_rang_example" translatable="false">22 ~ 28°</string>
+    <string name="other_info" translatable="false">80% PM25:20 PM10:20</string>
+    <string name="tips">若没有数据，请移除这个小部件，然后添加新的</string>
+    <string name="setting_permission">授予定位权限</string>
+    <string name="icon_description">预警级别图标</string>
+    <string name="hour">时</string>
 
 </resources>

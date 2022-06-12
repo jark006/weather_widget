@@ -20,6 +20,7 @@ import android.os.Build;
 import android.util.Log;
 import android.widget.RemoteViews;
 
+import com.amap.api.location.AMapLocation;
 import com.amap.api.location.AMapLocationClient;
 import com.amap.api.location.AMapLocationClientOption;
 import com.amap.api.location.AMapLocationListener;
@@ -45,6 +46,7 @@ import java.io.OutputStreamWriter;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.zip.CRC32;
 
 /**
@@ -56,15 +58,14 @@ public class Widget1 extends AppWidgetProvider {
 
     double curLongitude = finalLongitude;
     double curLatitude = finalLatitude;
-
+    AMapLocation aMapLocationBK;
     String locationTime = "00-00 00:00";
     public static final String ACTION_UPDATE = "action_update";
 
-    public final int UPDATE_SUCCESS = 0x03;
-    public final int UPDATE_FAILED = 0x04;
-    public final int UPDATE_ONGOING = 0x05;
+    final int UPDATE_SUCCESS = 0x03;
+    final int UPDATE_FAILED = 0x04;
+    final int UPDATE_ONGOING = 0x05;
     static HashSet<String> hasNotify = new HashSet<>();
-    AMapLocationClient mLocationClient;
 
     // 01台风 02暴雨 ... 18沙尘
     final String[] warnTypeStr = {
@@ -75,6 +76,13 @@ public class Widget1 extends AppWidgetProvider {
     };
     //00白色 ... 04红色
     final String[] warnLevelStr = {"白色预警", "蓝色预警", "黄色预警", "橙色预警", "红色预警"};
+    final String[] warnLevelDescription = {
+            "一般是台风(热带气旋)预警，可能于48小时内影响该地",
+            "Ⅳ级（一般）预警",
+            "Ⅲ级（较重）预警",
+            "Ⅱ级（严重）预警",
+            "Ⅰ级（特别严重）预警",
+    };
 
     final int[] IMPORTANT_INT = {
             NotificationManager.IMPORTANCE_NONE,
@@ -110,7 +118,7 @@ public class Widget1 extends AppWidgetProvider {
         // 手动刷新
         if (ACTION_UPDATE.equals(action)) {
             Log.d(TAG, "onReceive: 手动刷新");
-            updateAppWidget(context, UPDATE_ONGOING, "更新中...");
+            updateAppWidget(context, UPDATE_ONGOING, context.getString(R.string.widget_updating));
             getLocationAmap(context);
         }
     }
@@ -141,6 +149,7 @@ public class Widget1 extends AppWidgetProvider {
         //声明定位回调监听器
         @SuppressLint("DefaultLocale")
         AMapLocationListener mLocationListener = aMapLocation -> {
+            aMapLocationBK = aMapLocation;
             if (aMapLocation.getErrorCode() == 0) {
                 curLongitude = aMapLocation.getLongitude();
                 curLatitude = aMapLocation.getLatitude();
@@ -162,6 +171,7 @@ public class Widget1 extends AppWidgetProvider {
         };
 
         //初始化定位
+        AMapLocationClient mLocationClient;
         try {
             mLocationClient = new AMapLocationClient(context);
         } catch (Exception e) {
@@ -317,12 +327,13 @@ public class Widget1 extends AppWidgetProvider {
         StringBuilder hourTemp = new StringBuilder();
         List<DoubleValue> list = weatherBean.result.hourly.temperature;
         double gap = (list.get(1).value - list.get(0).value);
-        hourTemp.append(list.get(1).datetime.substring(11, 13)).append("时[");
+        String hour = context.getString(R.string.hour);
+        hourTemp.append(list.get(1).datetime.substring(11, 13)).append(hour).append("[");
         for (int i = 1; i <= 10; i++) {
             hourTemp.append(String.format("%2d° ", (int) (list.get(i).value - gap)));
         }
         hourTemp.setCharAt(hourTemp.length() - 1, ']');
-        hourTemp.append(list.get(10).datetime.substring(11, 13)).append("时");
+        hourTemp.append(list.get(10).datetime.substring(11, 13)).append(hour);
         remoteViews.setTextViewText(R.id.hour_temp, hourTemp.toString().trim());
 
         Realtime realtime = weatherBean.result.realtime;
@@ -330,19 +341,26 @@ public class Widget1 extends AppWidgetProvider {
         AirQuality air = realtime.air_quality;
 
         List<CodeName> adcodes = weatherBean.result.alert.adcodes;
-        String district = "本地";
-        if (adcodes.size() > 0)
+        String district;// = context.getString(R.string.district);
+        if (adcodes != null && adcodes.size() > 0)
             district = adcodes.get(adcodes.size() - 1).name;
+        else
+            district = aMapLocationBK.getCity();
 
         String forecast = weatherBean.result.forecast_keypoint;
         String description = weatherBean.result.minutely.description;
+
+        Locale locale = context.getResources().getConfiguration().getLocales().get(0);
+
         String otherInfo = String.format("%d%% PM2.5:%.0f PM10:%.0f O₃:%.0f SO₂:%.0f NO₂:%.0f CO:%.1f %s",
-                (int) (realtime.humidity * 100), air.pm25, air.pm10, air.o3, air.so2, air.no2, air.co, air.description.chn);
+                (int) (realtime.humidity * 100), air.pm25, air.pm10, air.o3, air.so2, air.no2, air.co,
+                locale.getLanguage().equals("zh") ? air.description.chn:air.description.usa);
+
         remoteViews.setTextViewText(R.id.location, district);
         remoteViews.setTextViewText(R.id.today_other, forecast.equals(description) ? otherInfo : forecast);
-        String updateDate = getFormatDate(System.currentTimeMillis(), DateUtils.HHmm);
-        remoteViews.setTextViewText(R.id.updateTime, context.getString(R.string.widget_update_time, updateDate) +
-                "\n" + locationTime);
+        String updateDate = getFormatDate(System.currentTimeMillis(), DateUtils.HHmm)
+                + context.getString(R.string.widget_update_time);
+        remoteViews.setTextViewText(R.id.updateTime, updateDate + "\n" + locationTime);
         remoteViews.setTextViewText(R.id.today_tem, (int) realtime.temperature + "°");
         remoteViews.setTextViewText(R.id.description, description);
 
@@ -407,7 +425,7 @@ public class Widget1 extends AppWidgetProvider {
                 e.printStackTrace();
             }
 
-            String channelId = info.alertId;
+            String channelId = warnLevelStr[warnLevel];
 
             RemoteViews cusRemoveExpandView = new RemoteViews(context.getPackageName(), R.layout.layout_notify_large);
             cusRemoveExpandView.setTextViewText(R.id.title, info.title);
@@ -426,7 +444,9 @@ public class Widget1 extends AppWidgetProvider {
             // 2. 获取系统的通知管理器
             NotificationManager notificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
             // 3. 创建NotificationChannel(这里传入的channelId要和创建的通知channelId一致，才能为指定通知建立通知渠道)
-            NotificationChannel channel = new NotificationChannel(channelId, warnLevelStr[warnLevel], importantLevel);
+            // 当 Sdk 大于大于 26 时（安卓8.0） 才有 NotificationChannel
+            NotificationChannel channel = new NotificationChannel(channelId, channelId, importantLevel);
+            channel.setDescription(warnLevelDescription[warnLevel]);
             notificationManager.createNotificationChannel(channel);
             // 4. 发送通知
             CRC32 crc32 = new CRC32();
