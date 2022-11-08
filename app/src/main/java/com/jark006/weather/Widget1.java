@@ -1,6 +1,5 @@
 package com.jark006.weather;
 
-import static android.content.ContentValues.TAG;
 import static android.content.Context.NOTIFICATION_SERVICE;
 import static com.jark006.weather.utils.DateUtils.getFormatDate;
 
@@ -14,16 +13,11 @@ import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.util.Log;
 import android.widget.RemoteViews;
 
-import com.amap.api.location.AMapLocation;
-import com.amap.api.location.AMapLocationClient;
-import com.amap.api.location.AMapLocationClientOption;
-import com.amap.api.location.AMapLocationListener;
 import com.google.gson.Gson;
 import com.jark006.weather.bean.AirQuality;
 import com.jark006.weather.bean.CodeName;
@@ -38,34 +32,25 @@ import com.jark006.weather.utils.DateUtils;
 import com.jark006.weather.utils.ImageUtils;
 import com.jark006.weather.utils.NetworkUtils;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.zip.CRC32;
 
 /**
  * 天气小部件
  */
 public class Widget1 extends AppWidgetProvider {
-    final double finalLongitude = 113.381917;//默认在广州大学城
-    final double finalLatitude = 23.039316;
+    final static String TAG = "Widget";
 
-    double curLongitude = finalLongitude;
-    double curLatitude = finalLatitude;
-    AMapLocation aMapLocationBK;
-    String locationTime = "00-00 00:00";
-    public static final String ACTION_UPDATE = "action_update";
-
-    final int UPDATE_SUCCESS = 0x03;
-    final int UPDATE_FAILED = 0x04;
-    final int UPDATE_ONGOING = 0x05;
-    static HashSet<String> hasNotify = new HashSet<>();
+    final String ACTION_UPDATE = "jark_weather_action_update";
+    final double defLongitude = 113.381917;//默认在广州大学城
+    final double defLatitude = 23.039316;
+    final int UPDATE_SUCCESS = 0;
+    final int UPDATE_FAILED = 1;
+    final int UPDATE_ONGOING = 2;
 
     // 01台风 02暴雨 ... 18沙尘
     final String[] warnTypeStr = {
@@ -77,7 +62,7 @@ public class Widget1 extends AppWidgetProvider {
     //00白色 ... 04红色
     final String[] warnLevelStr = {"白色预警", "蓝色预警", "黄色预警", "橙色预警", "红色预警"};
     final String[] warnLevelDescription = {
-            "一般是台风(热带气旋)预警，可能于48小时内影响该地",
+            "台风或热带气旋预警",
             "Ⅳ级（一般）预警",
             "Ⅲ级（较重）预警",
             "Ⅱ级（严重）预警",
@@ -101,139 +86,77 @@ public class Widget1 extends AppWidgetProvider {
             R.drawable.ic_warning_red,
     };
 
+    boolean noLocation = true;
+    HashSet<String> hasNotify = new HashSet<>();
+
     @Override
     public void onEnabled(Context context) {
         super.onEnabled(context);
 
-
-        getLocationAmap(context);
+        // 创建预警信息通知通道
+        NotificationManager notificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
+        for (int warnLevel = 0; warnLevel < 5; warnLevel++) {
+            String channelId = warnLevelStr[warnLevel];
+            NotificationChannel channel = new NotificationChannel(channelId, channelId, IMPORTANT_INT[warnLevel + 1]);
+            channel.setDescription(warnLevelDescription[warnLevel]);
+            notificationManager.createNotificationChannel(channel);
+        }
+        Log.d(TAG, "onEnabled: 创建小部件");
     }
-
 
     @Override
     public void onReceive(final Context context, Intent intent) {
         super.onReceive(context, intent);
-
-        String action = intent.getAction();
-        // 手动刷新
-        if (ACTION_UPDATE.equals(action)) {
+        if (ACTION_UPDATE.equals(intent.getAction())) {// 手动刷新
             Log.d(TAG, "onReceive: 手动刷新");
-            updateAppWidget(context, UPDATE_ONGOING, context.getString(R.string.widget_updating));
-            getLocationAmap(context);
+            getWeatherData(context);
         }
     }
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
-        Log.d(TAG, "onUpdate: 周期刷新");
-        getLocationAmap(context);
-    }
-
-    void getLocationAmap(Context context) {
-//        //context.getPackageName(),
-        //PackageManager.GET_META_DATA);
-
-        AMapLocationClient.updatePrivacyShow(context, true, true);
-        AMapLocationClient.updatePrivacyAgree(context, true);
-//        AMapLocationClient.setApiKey("50407ea2ca3f8f53e63b5524f791f0fe");
-
-        try {
-            ApplicationInfo appInfo = context.getPackageManager().getApplicationInfo(context.getPackageName(),
-                    PackageManager.GET_META_DATA);
-            AMapLocationClient.setApiKey(appInfo.metaData.getString("com.amap.api.v2.apikey"));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return;
-        }
-        //声明AMapLocationClient类对象
-        //声明定位回调监听器
-        @SuppressLint("DefaultLocale")
-        AMapLocationListener mLocationListener = aMapLocation -> {
-            aMapLocationBK = aMapLocation;
-            if (aMapLocation.getErrorCode() == 0) {
-                curLongitude = aMapLocation.getLongitude();
-                curLatitude = aMapLocation.getLatitude();
-                locationTime = getFormatDate(new Date(aMapLocation.getTime()), "MM-dd HH:mm");
-                Log.i(TAG, "Location:" + curLongitude + "," + curLatitude + "," + aMapLocation.getAddress());
-            } else {
-                curLongitude = finalLongitude;
-                curLatitude = finalLatitude;
-
-                //定位失败时，可通过ErrCode（错误码）信息来确定失败的原因，errInfo是错误信息，详见错误码表。
-                String errorTips = getFormatDate(System.currentTimeMillis(), DateUtils.HHmm)
-                        + ", location Error, ErrCode:" + aMapLocation.getErrorCode()
-                        + ", errInfo:" + aMapLocation.getErrorInfo();
-                Log.e(TAG, "getLocationAmap: " + errorTips);
-                saveLog(context, "log.log", errorTips);
-                Log.i(TAG, "LocationFail,Using default:" + curLongitude + "," + curLatitude);
-            }
+        long hours = (System.currentTimeMillis() / 3600000 + 8) % 24; // UTC+8
+        if (hours >= 6) {
+            Log.d(TAG, "onUpdate: 周期刷新");// widget1_info.xml     android:updatePeriodMillis
             getWeatherData(context);
-        };
-
-        //初始化定位
-        AMapLocationClient mLocationClient;
-        try {
-            mLocationClient = new AMapLocationClient(context);
-        } catch (Exception e) {
-            String errorTips = getFormatDate(System.currentTimeMillis(), DateUtils.HHmm)
-                    + "mLocationClient = new AMapLocationClient(context) Fail.";
-            Log.e(TAG, "getLocationAmap: " + errorTips);
-            updateAppWidget(context, UPDATE_FAILED, errorTips);
-            e.printStackTrace();
-            return;
+        } else { // 凌晨 00:00 - 05:59 不更新天气
+            Log.d(TAG, "onUpdate: 现在" + hours + "时，不更新天气");
         }
-        //设置定位回调监听
-        mLocationClient.setLocationListener(mLocationListener);
-
-        //声明AMapLocationClientOption对象
-        AMapLocationClientOption mLocationOption;
-        //初始化AMapLocationClientOption对象
-        mLocationOption = new AMapLocationClientOption();
-
-        AMapLocationClientOption option = new AMapLocationClientOption();
-        option.setLocationPurpose(AMapLocationClientOption.AMapLocationPurpose.SignIn);
-        mLocationClient.setLocationOption(option);
-        //设置场景模式后最好调用一次stop，再调用start以保证场景模式生效
-        mLocationClient.stopLocation();
-
-        //设置定位模式为AMapLocationMode.Battery_Saving，低功耗模式。
-        mLocationOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Battery_Saving);
-
-        //获取一次定位结果：
-        //该方法默认为false。
-        mLocationOption.setOnceLocation(true);
-
-        //获取最近3s内精度最高的一次定位结果：
-        //设置setOnceLocationLatest(boolean b)接口为true，启动定位时SDK会返回最近3s内精度最高的一次定位结果。如果设置其为true，setOnceLocation(boolean b)接口也会被设置为true，反之不会，默认为false。
-        mLocationOption.setOnceLocationLatest(true);
-
-
-        //给定位客户端对象设置定位参数
-        mLocationClient.setLocationOption(mLocationOption);
-        //启动定位
-        mLocationClient.startLocation();
-
     }
+
 
     /**
      * 获取天气数据
      * <a href=https://api.caiyunapp.com/v2.6/wh9aWLYieE1akfGi/113.381429,23.039126/weather.json?alert=true>链接</a>
      */
+    @SuppressLint("DefaultLocale")
     private void getWeatherData(final Context context) {
 
-        new Thread(() -> {
-            @SuppressLint("DefaultLocale")
-            String link = String.format("https://api.caiyunapp.com/v2.6/wh9aWLYieE1akfGi/%f,%f/weather.json?alert=true",
-                    curLongitude, curLatitude);
+        updateAppWidget(context, UPDATE_ONGOING, context.getString(R.string.widget_updating));
 
-            int retryTimes = 3;
+        new Thread(() -> {
+
+            SharedPreferences sf = context.getSharedPreferences("locationInfo", Context.MODE_PRIVATE);
+            double longitude = sf.getFloat("longitude", 0);
+            double latitude = sf.getFloat("latitude", 90); // 北极
+
+            if (Math.abs(latitude) > 88.0) {  // 靠近北极就是位置异常
+                noLocation = true;
+                longitude = defLongitude;
+                latitude = defLatitude;
+            } else {
+                noLocation = false;
+            }
+
+            String link = String.format("https://api.caiyunapp.com/v2.6/wh9aWLYieE1akfGi/%f,%f/weather.json?alert=true",
+                    longitude, latitude);
+
+            final int retryTimes = 3;
             String res = null;
             for (int i = 1; i <= retryTimes; i++) {
                 try {
                     res = NetworkUtils.getData(link);
                 } catch (Exception e) {
-                    e.printStackTrace();
-                    @SuppressLint("DefaultLocale")
                     String log = String.format("getWeatherData: 第%d次网络异常, 剩余%d次", i, retryTimes - i);
                     Log.e(TAG, log + e);
                     saveLog(context, "log.log", "getWeatherData: " + log);
@@ -241,44 +164,24 @@ public class Widget1 extends AppWidgetProvider {
                 if (res != null)
                     break;
 
-                @SuppressLint("DefaultLocale")
                 String log = String.format("getWeatherData: 第%d次ResponseNull, 剩余%d次", i, retryTimes - i);
                 Log.e(TAG, log);
                 saveLog(context, "log.log", "getWeatherData: " + log);
                 try {
                     Thread.sleep(1000);
-                } catch (Exception e) {
-                    e.printStackTrace();
+                } catch (Exception ignored) {
                 }
             }
             if (res == null) {
-
                 String errorTips = getFormatDate(System.currentTimeMillis(), DateUtils.HHmm) + "获取天气数据失败";
                 Log.e(TAG, "getWeatherData: " + errorTips);
                 saveLog(context, "log.log", "getWeatherData: " + errorTips);
                 updateAppWidget(context, UPDATE_FAILED, errorTips);
                 return;
             }
-
-            try {
-                updateAppWidget(context, UPDATE_SUCCESS, res);
-            } catch (Exception e) {
-                String errorTips = getFormatDate(System.currentTimeMillis(), DateUtils.HHmm) + "解析数据失败";
-                Log.e(TAG, "getWeatherData: " + errorTips + e);
-                saveLog(context, "log.log", "getWeatherData: " + errorTips + e);
-                updateAppWidget(context, UPDATE_FAILED, errorTips);
-            }
+            updateAppWidget(context, UPDATE_SUCCESS, res);
         }).start();
     }
-
-//    /**
-//     * 创建跳转首界面 PendingIntent
-//     */
-//    protected PendingIntent createLaunchPendingIntent(Context context) {
-//        Intent launchIntent = new Intent(context, MainActivity.class);
-//        return PendingIntent.getActivity(context, 0, launchIntent,
-//                PendingIntent.FLAG_UPDATE_CURRENT);
-//    }
 
     /**
      * 创建更新数据 PendingIntent
@@ -287,12 +190,10 @@ public class Widget1 extends AppWidgetProvider {
     protected PendingIntent createUpdatePendingIntent(Context context) {
         Intent updateIntent = new Intent(ACTION_UPDATE);
         updateIntent.setClass(context, this.getClass());
-        Log.d(TAG, "createUpdatePendingIntent: ");
         if (Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S)
             return PendingIntent.getBroadcast(context, 0, updateIntent, PendingIntent.FLAG_MUTABLE);
         else
             return PendingIntent.getBroadcast(context, 0, updateIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
     }
 
     /**
@@ -300,67 +201,58 @@ public class Widget1 extends AppWidgetProvider {
      *
      * @param status      更新状态
      * @param context     上下文
-     * @param weatherJson 天气数据
+     * @param weatherJsonOrTips 天气数据
      */
-    private void updateAppWidget(Context context, int status, String weatherJson) {
-        ComponentName componentName = new ComponentName(context, this.getClass());
-        RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.widget1);
-
-        // 打开APP首页的Intent
-//        PendingIntent launchPendingIntent = createLaunchPendingIntent(context);
-//        remoteViews.setOnClickPendingIntent(R.id.location, launchPendingIntent);
-        // 刷新的Intent
-        PendingIntent updatePendingIntent = createUpdatePendingIntent(context);
-        remoteViews.setOnClickPendingIntent(R.id.widget_rl, updatePendingIntent);
-
-        if (status == UPDATE_SUCCESS) {
-            showAppWidgetData(context, remoteViews, weatherJson);
-        } else {
-            remoteViews.setTextViewText(R.id.today_other, weatherJson);
-        }
-        AppWidgetManager.getInstance(context).updateAppWidget(componentName, remoteViews);
-    }
-
     @SuppressLint("DefaultLocale")
-    private void showAppWidgetData(Context context, RemoteViews remoteViews, String weatherJson) {
-        WeatherBean weatherBean = new Gson().fromJson(weatherJson, WeatherBean.class);
-        StringBuilder hourTemp = new StringBuilder();
-        List<DoubleValue> list = weatherBean.result.hourly.temperature;
-        double gap = (list.get(1).value - list.get(0).value);
-        String hour = context.getString(R.string.hour);
-        hourTemp.append(list.get(1).datetime.substring(11, 13)).append(hour).append("[");
-        for (int i = 1; i <= 10; i++) {
-            hourTemp.append(String.format("%2d° ", (int) (list.get(i).value - gap)));
+    private void updateAppWidget(Context context, int status, String weatherJsonOrTips) {
+        ComponentName componentName = new ComponentName(context, this.getClass());
+        RemoteViews remoteViews = new RemoteViews(BuildConfig.APPLICATION_ID, R.layout.widget1);
+
+        // 点击手动刷新的Intent
+        remoteViews.setOnClickPendingIntent(R.id.widget_rl, createUpdatePendingIntent(context));
+
+        if (status != UPDATE_SUCCESS) {
+            remoteViews.setTextViewText(R.id.today_other, weatherJsonOrTips);
+            AppWidgetManager.getInstance(context).updateAppWidget(componentName, remoteViews);
+            return;
         }
-        hourTemp.setCharAt(hourTemp.length() - 1, ']');
-        hourTemp.append(list.get(10).datetime.substring(11, 13)).append(hour);
-        remoteViews.setTextViewText(R.id.hour_temp, hourTemp.toString().trim());
+
+        WeatherBean weatherBean = new Gson().fromJson(weatherJsonOrTips, WeatherBean.class);
+
+        StringBuilder tempIn10hours = new StringBuilder(); // 未来10小时的温度
+        List<DoubleValue> tempList = weatherBean.result.hourly.temperature;
+        tempIn10hours.append(tempList.get(1).datetime.substring(11, 13)).append("时[");
+        double gap = (tempList.get(1).value - tempList.get(0).value); // 误差校准
+        for (int i = 1; i <= 10; i++)
+            tempIn10hours.append((int) (tempList.get(i).value - gap)).append("° ");
+        tempIn10hours.setCharAt(tempIn10hours.length() - 1, ']'); // 把最后的空格换成 ']'
+        tempIn10hours.append(tempList.get(10).datetime.substring(11, 13)).append("时");
+        remoteViews.setTextViewText(R.id.hour_temp, tempIn10hours.toString());
 
         Realtime realtime = weatherBean.result.realtime;
         Daily daily = weatherBean.result.daily;
         AirQuality air = realtime.air_quality;
 
-        List<CodeName> adcodes = weatherBean.result.alert.adcodes;
-        String district;// = context.getString(R.string.district);
-        if (adcodes != null && adcodes.size() > 0)
-            district = adcodes.get(adcodes.size() - 1).name;
+        List<CodeName> adCodes = weatherBean.result.alert.adcodes;
+        String district;
+        if (adCodes != null && adCodes.size() > 0)
+            district = adCodes.get(adCodes.size() - 1).name;
         else
-            district = aMapLocationBK.getCity();
-
-        String forecast = weatherBean.result.forecast_keypoint;
-        String description = weatherBean.result.minutely.description;
-
-        Locale locale = context.getResources().getConfiguration().getLocales().get(0);
-
-        String otherInfo = String.format("%d%% PM2.5:%.0f PM10:%.0f O₃:%.0f SO₂:%.0f NO₂:%.0f CO:%.1f %s",
-                (int) (realtime.humidity * 100), air.pm25, air.pm10, air.o3, air.so2, air.no2, air.co,
-                locale.getLanguage().equals("zh") ? air.description.chn:air.description.usa);
-
+            district = context.getString(R.string.district);
         remoteViews.setTextViewText(R.id.location, district);
-        remoteViews.setTextViewText(R.id.today_other, forecast.equals(description) ? otherInfo : forecast);
-        String updateDate = getFormatDate(System.currentTimeMillis(), DateUtils.HHmm)
-                + context.getString(R.string.widget_update_time);
-        remoteViews.setTextViewText(R.id.updateTime, updateDate + "\n" + locationTime);
+
+        String description = weatherBean.result.minutely.description;
+        if (noLocation) {
+            remoteViews.setTextViewText(R.id.today_other, "请打开APP更新位置信息");
+        } else {
+            String forecast = weatherBean.result.forecast_keypoint;
+            String otherInfo = String.format("%d%% PM2.5:%.0f PM10:%.0f O₃:%.0f SO₂:%.0f NO₂:%.0f CO:%.1f %s",
+                    (int) (realtime.humidity * 100), air.pm25, air.pm10, air.o3, air.so2, air.no2, air.co,
+                    air.description.chn);
+            remoteViews.setTextViewText(R.id.today_other, forecast.equals(description) ? otherInfo : forecast);
+        }
+        String updateDate = getFormatDate(System.currentTimeMillis(), DateUtils.HHmm) + context.getString(R.string.widget_update_time);
+        remoteViews.setTextViewText(R.id.updateTime, updateDate);
         remoteViews.setTextViewText(R.id.today_tem, (int) realtime.temperature + "°");
         remoteViews.setTextViewText(R.id.description, description);
 
@@ -386,12 +278,15 @@ public class Widget1 extends AppWidgetProvider {
         double intensity = weatherBean.result.realtime.precipitation.local.intensity;
 
         // 是否是白天
-        long hours = System.currentTimeMillis() / 3600000 + 8;
-        hours %= 24;
+        long hours = (System.currentTimeMillis() / 3600000 + 8) % 24;
         boolean isDay = hours > 6 && hours < 18;
 
         // 设置背景
         remoteViews.setInt(R.id.widget_rl, "setBackgroundResource", ImageUtils.getBgResourceId(weather, intensity, isDay));
+
+        // 刷新小部件UI
+        AppWidgetManager.getInstance(context).updateAppWidget(componentName, remoteViews);
+
 
         //预警信息通知
         List<WarnInfo> warnInfo = weatherBean.result.alert.content;
@@ -401,8 +296,6 @@ public class Widget1 extends AppWidgetProvider {
 
             hasNotify.add(info.alertId);
 
-            Log.i(TAG, "showAppWidgetData: " + info.description);
-
             int warnLevel = 0;
             String title = info.location + " " + info.status;
             int importantLevel = NotificationManager.IMPORTANCE_DEFAULT;
@@ -411,16 +304,14 @@ public class Widget1 extends AppWidgetProvider {
                 int warnType = Integer.parseInt(info.code); // 2位预警类型编码 ＋ 2位预警级别编码
                 warnLevel = warnType % 100; // 预警级别 00 ~ 04
 
-                if (warnLevel > 4)
-                    warnLevel = 4;
-                else if (warnLevel < 0)
+                if (warnLevel < 0 || warnLevel > 4)
                     warnLevel = 0;
 
                 warnType /= 100; // 预警类型 01 ~ 18， 00未知
                 if (warnType < 1 || warnType > 18)
                     warnType = 0;
                 title = info.location + " " + warnTypeStr[warnType] + " " + info.status;
-                importantLevel = IMPORTANT_INT[warnLevel + 1];
+                importantLevel = IMPORTANT_INT[warnLevel + 1]; // 预警级别 00 ~ 04 对应 通知重要级别 01-05
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -435,20 +326,17 @@ public class Widget1 extends AppWidgetProvider {
             Notification notification = new Notification.Builder(context, channelId)
                     .setWhen(System.currentTimeMillis())
                     .setSmallIcon(R.drawable.ic_sunny)
-//                    .setLargeIcon(BitmapFactory.decodeResource(context.getResources(), warnIcoIndex[warnLevel]))
                     .setContentTitle(title)
                     .setContentText(info.title)
                     .setStyle(new Notification.DecoratedCustomViewStyle())
                     .setCustomBigContentView(cusRemoveExpandView)
                     .build();
-            // 2. 获取系统的通知管理器
+
             NotificationManager notificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
-            // 3. 创建NotificationChannel(这里传入的channelId要和创建的通知channelId一致，才能为指定通知建立通知渠道)
-            // 当 Sdk 大于大于 26 时（安卓8.0） 才有 NotificationChannel
             NotificationChannel channel = new NotificationChannel(channelId, channelId, importantLevel);
             channel.setDescription(warnLevelDescription[warnLevel]);
             notificationManager.createNotificationChannel(channel);
-            // 4. 发送通知
+
             CRC32 crc32 = new CRC32();
             crc32.update(info.alertId.getBytes());
             notificationManager.notify((int) crc32.getValue(), notification);
@@ -457,25 +345,14 @@ public class Widget1 extends AppWidgetProvider {
 
     public void saveLog(Context context, String path, String text) {
         try {
-            //默认保存到data/data/包名/files/目录下
-
-            int logFileMode = Context.MODE_APPEND;  //默认模式 追加日志
-            File logFile = context.getFileStreamPath(path);
-
-            if (logFile.length() > 100 * 1024) {  //超过100kb就清空覆盖
-                logFileMode = Context.MODE_PRIVATE;
-            }
-
+            String str = DateUtils.getLogTime() + ": " + text + "\n";
+            File logFile = context.getFileStreamPath(path);// /data/data/包名/files
+            int logFileMode = (logFile.length() > 100 * 1024) ? Context.MODE_PRIVATE : Context.MODE_APPEND;
             FileOutputStream fileOut = context.openFileOutput(path, logFileMode);
-            BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(fileOut));
-
-            bufferedWriter.write(DateUtils.getLogTime() + ": " + text + "\n");
-            bufferedWriter.close();
-
+            fileOut.write(str.getBytes());
+            fileOut.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
     }
 }

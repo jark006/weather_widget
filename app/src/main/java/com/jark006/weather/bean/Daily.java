@@ -9,7 +9,6 @@ public class Daily {
     public List<Temperature> temperature;
     public List<Dswrf> dswrf;
     public List<Cloudrate> cloudrate;
-//    public List<Aqi> aqi;
     public List<Skycon> skycon;
     public List<Visibility> visibility;
     public List<Humidity> humidity;
@@ -20,7 +19,6 @@ public class Daily {
     public List<Dressing> dressing;
     public List<CarWashing> carWashing;
     public List<Precipitation> precipitation;
-//    public List<Wind> wind;
     public List<Skycon_08h_20h> skycon_08h_20h;
 }
 

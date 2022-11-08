@@ -1,8 +1,6 @@
 <resources>
     <string name="app_name">小天气</string>
 
-    <string name="widget_location_failed">定位失败</string>
-    <string name="widget_no_location_permission">请打开设置授予APP定位权限</string>
     <string name="widget_unknown">未知</string>
     <string name="widget_updating">更新中。。。</string>
     <string name="widget_update_failed">更新失败</string>
@@ -14,9 +12,14 @@
     <string name="temp_example" translatable="false">25°</string>
     <string name="temp_rang_example" translatable="false">22 ~ 28°</string>
     <string name="other_info" translatable="false">80% PM25:20 PM10:20</string>
+    <string name="location_tips">请到设置里开启应用的定位权限</string>
+    <string name="location_failed">若获取权限后依旧定位失败，请关闭应用再打开，重新更新位置。</string>
     <string name="tips">若没有数据，请移除这个小部件，然后添加新的</string>
-    <string name="setting_permission">授予定位权限</string>
+    <string name="setting_permission">去开启定位权限</string>
     <string name="icon_description">预警级别图标</string>
-    <string name="hour">时</string>
+    <string name="update_tips">本APP只有桌面小部件，点击小部件可立即更新天气，平时每小时自动更新一次，凌晨0时至6时停止自动更新。\nAPP后续升级在冻它模块群: 781222669\n酷安@JARK006</string>
+    <string name="qq_group_link" translatable="false">https://jq.qq.com/?_wv=1027&amp;k=ZsyKpCP8</string>
+    <string name="go_qq_group">跳转QQ群</string>
+    <string name="app_data">定位SDK由高德提供，天气数据来源于“彩云天气”</string>
 
 </resources>

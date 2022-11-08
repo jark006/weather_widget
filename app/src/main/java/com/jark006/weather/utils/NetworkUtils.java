@@ -59,14 +59,14 @@ public class NetworkUtils {
                 os.close();
                 return os.toString();
             } else {
-                Log.i(TAG,  String.format("返回码:%d，网络异常", resCode));
+                Log.e(TAG,  String.format("返回码:%d，网络异常", resCode));
                 return null;
             }
         } catch (IOException e) {
             e.printStackTrace();
-            Log.i(TAG, "NetworkUtils IOException IO异常");
+            Log.e(TAG, "NetworkUtils IOException IO异常");
         }
-        Log.i(TAG, "NetworkUtils getData IO返回null");
+        Log.e(TAG, "NetworkUtils getData IO返回null");
         return null;
     }
 

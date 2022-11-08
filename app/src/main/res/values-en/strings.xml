@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">WeatherWidget</string>
-    <string name="widget_location_failed">Location Fail</string>
-    <string name="widget_no_location_permission">Please open the setting to grant a location permission</string>
-    <string name="widget_unknown">Unknow</string>
-    <string name="widget_updating">Updating...</string>
+    <string name="location_failed">If the location still fails after getting permission, please close the application and open it again to update the location again.</string>
+    <string name="widget_unknown">Unknown</string>
+    <string name="widget_updating">Updating…</string>
     <string name="widget_update_failed">UpdateFail</string>
     <string name="widget_update_time">Updated</string>
     <string name="district">Local</string>
@@ -13,5 +12,8 @@
     <string name="tips">If there is no data, remove the widget and add a new one</string>
     <string name="setting_permission">Grant location permission</string>
     <string name="icon_description">Alert level Icon</string>
-    <string name="hour">Hour</string>
+    <string name="update_tips">This application only has a launcher widget, click the widget to update the weather immediately, usually automatically update once an hour, and stop the automatic update from 0:00 am to 6:00 am.\nFollow-up upgrades of the application are in the freezeit module group: 781222669\nCoolapk@JARK006</string>
+    <string name="go_qq_group">Jump to QQ group</string>
+    <string name="location_tips">Please go to settings to enable location permission</string>
+    <string name="app_data">Location SDK provided by Amap.com, weather data from \"Caiyun Weather\"</string>
 </resources>

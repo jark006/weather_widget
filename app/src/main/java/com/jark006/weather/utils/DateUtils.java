@@ -14,7 +14,7 @@ public class DateUtils {
     public static final String yyyyMMddHHmm = "yyyy-MM-dd HH:mm";
 
     public static String getWeekday(int weekday) {
-        String[] week = {"周日", "周一", "周二", "周三", "周四", "周五", "周六"};
+        final String[] week = {"周日", "周一", "周二", "周三", "周四", "周五", "周六"};
         return week[weekday];
     }
 
