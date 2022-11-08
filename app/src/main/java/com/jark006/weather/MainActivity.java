@@ -36,7 +36,7 @@ import com.jark006.weather.utils.DateUtils;
 public class MainActivity extends AppCompatActivity {
     final String tips = "\n\n小部件将会一直使用以上地址，若平时移动范围小于10公里，则不需要频繁更新。";
     TextView mainText;
-    Button bt1, bt2;
+    Button btJumpToQQ, btUpdateLocation, btJumpToGithub;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,10 +44,11 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         mainText = findViewById(R.id.mainText);
-        bt1 = findViewById(R.id.button1);
-        bt2 = findViewById(R.id.button2);
+        btJumpToQQ = findViewById(R.id.btJumpToQQ);
+        btJumpToGithub = findViewById(R.id.btJumpToGithub);
+        btUpdateLocation = findViewById(R.id.btUpdateLocation);
 
-        bt1.setOnClickListener(v -> {
+        btJumpToQQ.setOnClickListener(v -> {
             try {
                 //【冻它模块 freezeit】(781222669) 的 key 为： ntLAwm7WxB0hVcetV7DsxfNTVN16cGUD
                 String key = "ntLAwm7WxB0hVcetV7DsxfNTVN16cGUD";
@@ -59,6 +60,8 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.qq_group_link))));
             }
         });
+
+        btJumpToGithub.setOnClickListener(v -> startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/jark006/weather_widget"))));
     }
 
     @SuppressLint("SetTextI18n")
@@ -77,8 +80,8 @@ public class MainActivity extends AppCompatActivity {
         } else {
             mainText.setText("暂无位置信息，请更新");
         }
-        bt2.setText("更新当前位置");
-        bt2.setOnClickListener(v -> getLocationAmap(getApplicationContext()));
+        btUpdateLocation.setText("更新当前位置");
+        btUpdateLocation.setOnClickListener(v -> getLocationAmap(getApplicationContext()));
     }
 
     private final Handler handler = new Handler(Looper.getMainLooper()) {
@@ -132,8 +135,8 @@ public class MainActivity extends AppCompatActivity {
             if (isNoPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ||
                     isNoPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)) {
                 mainText.setText(R.string.location_tips);
-                bt2.setText(R.string.setting_permission);
-                bt2.setOnClickListener(v -> {
+                btUpdateLocation.setText(R.string.setting_permission);
+                btUpdateLocation.setOnClickListener(v -> {
                     Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
                     intent.setData(Uri.fromParts("package", this.getPackageName(), null));
                     startActivity(intent);
