@@ -85,13 +85,15 @@ public class Widget1 extends AppWidgetProvider {
             R.drawable.ic_warning_orange,
             R.drawable.ic_warning_red,
     };
-
+    boolean isFirst = true;
     boolean noLocation = true;
     HashSet<String> hasNotify = new HashSet<>();
 
     @Override
     public void onEnabled(Context context) {
         super.onEnabled(context);
+        Log.d(TAG, "onEnabled: 创建小部件");
+        saveLog(context, "log.log","onEnabled: 创建小部件");
 
         // 创建预警信息通知通道
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
@@ -101,7 +103,6 @@ public class Widget1 extends AppWidgetProvider {
             channel.setDescription(warnLevelDescription[warnLevel]);
             notificationManager.createNotificationChannel(channel);
         }
-        Log.d(TAG, "onEnabled: 创建小部件");
     }
 
     @Override
@@ -109,18 +110,26 @@ public class Widget1 extends AppWidgetProvider {
         super.onReceive(context, intent);
         if (ACTION_UPDATE.equals(intent.getAction())) {// 手动刷新
             Log.d(TAG, "onReceive: 手动刷新");
-            getWeatherData(context);
+            saveLog(context, "log.log","onReceive: 手动刷新");
+            getWeatherData(context, "手动刷新...");
         }
     }
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
+        if(isFirst){ // 创建小部件后首次强制刷新一次，否则凌晨时候创建的小部件不会刷新
+            isFirst = false;
+            saveLog(context, "log.log","首次刷新...");
+            getWeatherData(context, "首次刷新...");
+            return;
+        }
+
         long hours = (System.currentTimeMillis() / 3600000 + 8) % 24; // UTC+8
         if (hours >= 6) {
-            Log.d(TAG, "onUpdate: 周期刷新");// widget1_info.xml     android:updatePeriodMillis
-            getWeatherData(context);
+            Log.d(TAG, "onUpdate: 定时刷新");// widget1_info.xml     android:updatePeriodMillis
+            getWeatherData(context, "定时刷新...");
         } else { // 凌晨 00:00 - 05:59 不更新天气
-            Log.d(TAG, "onUpdate: 现在" + hours + "时，不更新天气");
+            Log.d(TAG, "onUpdate: 现在凌晨" + hours + "时，暂停刷新天气");
         }
     }
 
@@ -130,9 +139,9 @@ public class Widget1 extends AppWidgetProvider {
      * <a href=https://api.caiyunapp.com/v2.6/wh9aWLYieE1akfGi/113.381429,23.039126/weather.json?alert=true>链接</a>
      */
     @SuppressLint("DefaultLocale")
-    private void getWeatherData(final Context context) {
+    private void getWeatherData(final Context context, String tips) {
 
-        updateAppWidget(context, UPDATE_ONGOING, context.getString(R.string.widget_updating));
+        updateAppWidget(context, UPDATE_ONGOING, tips);
 
         new Thread(() -> {
 
@@ -273,16 +282,16 @@ public class Widget1 extends AppWidgetProvider {
                 + " ~ " + (int) temperature2.max + "°");
 
         // 天气描述
-        String weather = weatherBean.result.realtime.skycon;
+        String skyconStr = weatherBean.result.realtime.skycon;
         // 降雨（雪）强度
         double intensity = weatherBean.result.realtime.precipitation.local.intensity;
 
-        // 是否是白天
+        // 是否白天
         long hours = (System.currentTimeMillis() / 3600000 + 8) % 24;
         boolean isDay = hours > 6 && hours < 18;
 
         // 设置背景
-        remoteViews.setInt(R.id.widget_rl, "setBackgroundResource", ImageUtils.getBgResourceId(weather, intensity, isDay));
+        remoteViews.setInt(R.id.widget_rl, "setBackgroundResource", ImageUtils.getBgResourceId(skyconStr, intensity, isDay));
 
         // 刷新小部件UI
         AppWidgetManager.getInstance(context).updateAppWidget(componentName, remoteViews);
@@ -345,7 +354,7 @@ public class Widget1 extends AppWidgetProvider {
 
     public void saveLog(Context context, String path, String text) {
         try {
-            String str = DateUtils.getLogTime() + ": " + text + "\n";
+            String str = "["+DateUtils.getLogTime() + "] " + text + "\n";
             File logFile = context.getFileStreamPath(path);// /data/data/包名/files
             int logFileMode = (logFile.length() > 100 * 1024) ? Context.MODE_PRIVATE : Context.MODE_APPEND;
             FileOutputStream fileOut = context.openFileOutput(path, logFileMode);
