@@ -41,32 +41,24 @@ public abstract class BaseWidget extends AppWidgetProvider {
     final int[] IMPORTANT_INT = Utils.IMPORTANT_INT;
     final int[] warnIconIndex = Utils.warnIconIndex;
 
-    static boolean isFirst = false;
-
     @Override
     public void onEnabled(Context context) {
         super.onEnabled(context);
         Log.d(TAG, "onEnabled: 创建小部件");
-        isFirst = true;
     }
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         // widget1_info.xml     android:updatePeriodMillis
-        long hours = (System.currentTimeMillis() / 3600000 + 8) % 24; // UTC+8
-        if (isFirst || hours >= 6) {
-            Log.d(TAG, "onUpdate: 定时刷新");
-            getWeatherData(context, "定时刷新...");
-        } else { // 凌晨 00:00 - 05:59 不更新天气
-            Log.d(TAG, "onUpdate: 现在凌晨" + hours + "时，暂停刷新天气");
-        }
+        Log.d(TAG, "onUpdate: 定时刷新");
+        getWeatherData(context, "定时刷新...");
     }
 
     @Override
     public void onReceive(final Context context, Intent intent) {
         super.onReceive(context, intent);
         if (Utils.REQUEST_MANUAL.equals(intent.getAction())) {
-            Log.d(TAG, "onReceive: 手动刷新" + isFirst);
+            Log.d(TAG, "onReceive: 手动刷新");
             getWeatherData(context, "手动刷新...");
         }
     }
