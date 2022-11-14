@@ -9,10 +9,8 @@ import android.content.Context;
 import android.widget.RemoteViews;
 
 import com.google.gson.Gson;
-import com.jark006.weather.bean.AirQuality;
 import com.jark006.weather.bean.CodeName;
 import com.jark006.weather.bean.Daily;
-import com.jark006.weather.bean.DoubleValue;
 import com.jark006.weather.bean.Realtime;
 import com.jark006.weather.bean.Skycon;
 import com.jark006.weather.bean.Temperature;
@@ -25,7 +23,7 @@ import java.util.List;
 /**
  * 天气小部件
  */
-public class Widget1 extends BaseWidget {
+public class Widget2 extends BaseWidget {
 
     /**
      * 根据状态更新天气小部件
@@ -38,13 +36,13 @@ public class Widget1 extends BaseWidget {
     @SuppressLint("DefaultLocale")
     public void updateAppWidget(Context context, int status, String weatherJsonOrTips, boolean noLocation) {
         ComponentName componentName = new ComponentName(context, this.getClass());
-        RemoteViews remoteViews = new RemoteViews(BuildConfig.APPLICATION_ID, R.layout.widget1);
+        RemoteViews remoteViews = new RemoteViews(BuildConfig.APPLICATION_ID, R.layout.widget2);
 
         // 点击手动刷新的Intent
         remoteViews.setOnClickPendingIntent(R.id.widget_rl, createUpdatePendingIntent(context));
 
         if (status != UPDATE_SUCCESS) {
-            remoteViews.setTextViewText(R.id.today_other, weatherJsonOrTips);
+            remoteViews.setTextViewText(R.id.description, weatherJsonOrTips);
             AppWidgetManager.getInstance(context).updateAppWidget(componentName, remoteViews);
             return;
         }
@@ -52,19 +50,9 @@ public class Widget1 extends BaseWidget {
         // UPDATE_SUCCESS
         WeatherBean weatherBean = new Gson().fromJson(weatherJsonOrTips, WeatherBean.class);
 
-        StringBuilder tempIn10hours = new StringBuilder(); // 未来10小时的温度
-        List<DoubleValue> tempList = weatherBean.result.hourly.temperature;
-        tempIn10hours.append(tempList.get(1).datetime.substring(11, 13)).append("时[");
-        double gap = (tempList.get(1).value - tempList.get(0).value); // 误差校准
-        for (int i = 1; i <= 10; i++)
-            tempIn10hours.append((int) (tempList.get(i).value - gap)).append("° ");
-        tempIn10hours.setCharAt(tempIn10hours.length() - 1, ']'); // 把最后的空格换成 ']'
-        tempIn10hours.append(tempList.get(10).datetime.substring(11, 13)).append("时");
-        remoteViews.setTextViewText(R.id.hour_temp, tempIn10hours.toString());
 
         Realtime realtime = weatherBean.result.realtime;
         Daily daily = weatherBean.result.daily;
-        AirQuality air = realtime.air_quality;
 
         List<CodeName> adCodes = weatherBean.result.alert.adcodes;
         String district;
@@ -74,36 +62,25 @@ public class Widget1 extends BaseWidget {
             district = context.getString(R.string.district);
         remoteViews.setTextViewText(R.id.location, district);
 
-        String description = weatherBean.result.minutely.description;
-        if (noLocation) {
-            remoteViews.setTextViewText(R.id.today_other, "请打开APP更新你的位置信息");
-        } else {
-            String forecast = weatherBean.result.forecast_keypoint;
-            String otherInfo = String.format("%d%% PM2.5:%.0f PM10:%.0f O₃:%.0f SO₂:%.0f NO₂:%.0f CO:%.1f %s",
-                    (int) (realtime.humidity * 100), air.pm25, air.pm10, air.o3, air.so2, air.no2, air.co,
-                    air.description.chn);
-            remoteViews.setTextViewText(R.id.today_other, forecast.equals(description) ? otherInfo : forecast);
-        }
-        String updateDate = getFormatDate(System.currentTimeMillis(), DateUtils.HHmm) + context.getString(R.string.widget_update_time);
-        remoteViews.setTextViewText(R.id.updateTime, updateDate);
+        String updateTime = getFormatDate(System.currentTimeMillis(), DateUtils.HHmm);
+        remoteViews.setTextViewText(R.id.updateTime, updateTime);
         remoteViews.setTextViewText(R.id.today_tem, (int) realtime.temperature + "°");
-        remoteViews.setTextViewText(R.id.description, description);
+
+        if (noLocation) {
+            remoteViews.setTextViewText(R.id.description, "请打开APP更新你的位置信息");
+        } else {
+            String description = weatherBean.result.minutely.description;
+            remoteViews.setTextViewText(R.id.description, description);
+        }
 
         // 明天预报
         Skycon skycon = daily.skycon.get(1);
         Temperature temperature1 = daily.temperature.get(1);
         remoteViews.setImageViewResource(R.id.tomorrowImg, ImageUtils.getWeatherIcon(skycon.value));
-        remoteViews.setTextViewText(R.id.tomorrow, (int) temperature1.avg + "°");
+        remoteViews.setTextViewText(R.id.tomorrow, "明天 "+(int) temperature1.avg + "°");
         remoteViews.setTextViewText(R.id.tomorrowRange, (int) temperature1.min
                 + " ~ " + (int) temperature1.max + "°");
 
-        // 后天预报
-        skycon = daily.skycon.get(2);
-        remoteViews.setImageViewResource(R.id.bigTomorrowImg, ImageUtils.getWeatherIcon(skycon.value));
-        Temperature temperature2 = daily.temperature.get(2);
-        remoteViews.setTextViewText(R.id.bigTomorrow, (int) temperature2.avg + "°");
-        remoteViews.setTextViewText(R.id.bigTomorrowRange, (int) temperature2.min
-                + " ~ " + (int) temperature2.max + "°");
 
         // 天气描述
         String skyCon = weatherBean.result.realtime.skycon;

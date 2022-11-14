@@ -3,6 +3,8 @@ package com.jark006.weather;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -24,6 +26,7 @@ import com.amap.api.location.AMapLocationClient;
 import com.amap.api.location.AMapLocationClientOption;
 import com.amap.api.location.AMapLocationListener;
 import com.jark006.weather.utils.DateUtils;
+import com.jark006.weather.utils.Utils;
 
 //debug key sha1
 //C:\Program Files\Android\Android Studio\jre\bin> ./keytool -list -v -keystore "C:\Users\JARK006\.android\debug.keystore"
@@ -192,5 +195,18 @@ public class MainActivity extends AppCompatActivity {
         mLocationClient.setLocationListener(mLocationListener);//设置定位回调监听
         mLocationClient.setLocationOption(option);//给定位客户端对象设置定位参数
         mLocationClient.startLocation();//启动定位
+
+        final String[] warnLevelStr = Utils.warnLevelStr;//00白色 ... 04红色
+        final String[] warnLevelDescription = Utils.warnLevelDescription;
+        final int[] IMPORTANT_INT = Utils.IMPORTANT_INT;
+
+        // 创建预警信息通知通道
+        NotificationManager notificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
+        for (int warnLevel = 0; warnLevel < 5; warnLevel++) {
+            String channelId = warnLevelStr[warnLevel];
+            NotificationChannel channel = new NotificationChannel(channelId, channelId, IMPORTANT_INT[warnLevel + 1]);
+            channel.setDescription(warnLevelDescription[warnLevel]);
+            notificationManager.createNotificationChannel(channel);
+        }
     }
 }

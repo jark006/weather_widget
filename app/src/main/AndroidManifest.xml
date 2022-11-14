@@ -32,24 +32,34 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget1_info" />
         </receiver>
+        <receiver
+            android:name=".Widget2"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget2_info" />
+        </receiver>
 
         <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
+
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
             </intent-filter>
         </activity>
 
-        <service android:name="com.amap.api.location.APSService" />
-
-        <!--  请到高德平台申请你的apiKey https://lbs.amap.com/api/android-location-sdk/guide/create-project/get-key-->
+        <service android:name="com.amap.api.location.APSService" /> <!-- 请到高德平台申请你的apiKey https://lbs.amap.com/api/android-location-sdk/guide/create-project/get-key -->
         <meta-data
             android:name="com.amap.api.v2.apikey"
             android:value="50407ea2ca3f8f53e63b5524f791f0fe" />
-
     </application>
 
 </manifest>

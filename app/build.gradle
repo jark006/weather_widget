@@ -11,8 +11,8 @@ android {
         applicationId "com.jark006.weather"
         minSdk 28
         targetSdk 33
-        versionCode 16
-        versionName "1.6"
+        versionCode 17
+        versionName "1.7"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         resValue "string", "appVer", "v${versionName}"
     }
