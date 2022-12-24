@@ -11,9 +11,9 @@
       "type": "SINGLE",
       "filters": [],
       "attributes": [],
-      "versionCode": 18,
-      "versionName": "1.8",
-      "outputFile": "小天气_1.8版_2022-11-15_release.apk"
+      "versionCode": 20,
+      "versionName": "2.0",
+      "outputFile": "weather_widget_v2.0_2022-12-24_release.apk"
     }
   ],
   "elementType": "File"

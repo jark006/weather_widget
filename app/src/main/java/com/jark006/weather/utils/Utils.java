@@ -8,12 +8,11 @@ import com.jark006.weather.R;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.HashSet;
 
 public class Utils {
 
-    public static final String UPDATE_UI = "jark_weather_UPDATE_UI";
     public static final String REQUEST_MANUAL = "jark_weather_REQUEST_MANUAL";
-    public static final String REQUEST_FREQ = "jark_weather_REQUEST_FREQ";
 
     public static final double defLongitude = 113.381917;//默认在广州大学城
     public static final double defLatitude = 23.039316;
@@ -65,4 +64,6 @@ public class Utils {
             e.printStackTrace();
         }
     }
+
+    public final static HashSet<String> hasNotify = new HashSet<>();
 }

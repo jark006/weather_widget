@@ -70,13 +70,12 @@
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
+        android:paddingHorizontal="5dp"
         android:orientation="vertical">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:paddingStart="10dp"
-            android:paddingEnd="20dp"
             android:layout_weight="1"
             android:orientation="horizontal">
 
@@ -89,15 +88,15 @@
                 android:textSize="16sp" />
 
             <ImageView
-                android:gravity="start"
-                android:paddingVertical="10dp"
                 android:id="@+id/tomorrowImg"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:padding="5dp"
+                android:layout_width="60dp"
+                android:layout_height="wrap_content"
                 app:srcCompat="@drawable/ic_cloud"
                 android:contentDescription="@string/tomorrow" />
             <LinearLayout
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:orientation="vertical">
                 <TextView
@@ -123,9 +122,9 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:paddingStart="20dp"
-            android:paddingEnd="10dp"
             android:layout_weight="1"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            tools:ignore="RtlSymmetry">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -135,15 +134,16 @@
                 android:textColor="@color/white"
                 android:textSize="16sp" />
             <ImageView
-                android:paddingVertical="10dp"
                 android:id="@+id/bigTomorrowImg"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:padding="5dp"
+                android:layout_width="60dp"
+                android:layout_height="wrap_content"
                 app:srcCompat="@drawable/ic_cloud"
                 android:contentDescription="@string/big_tomorrow" />
 
             <LinearLayout
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:orientation="vertical">
                 <TextView

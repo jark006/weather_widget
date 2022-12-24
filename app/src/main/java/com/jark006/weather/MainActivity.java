@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -124,16 +125,8 @@ public class MainActivity extends AppCompatActivity {
         if (isNoPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ||
                 isNoPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)) {
 
-            final String[] requestList = new String[]{
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION,
-            };
-            ActivityCompat.requestPermissions(MainActivity.this, requestList, 2);
-
-            try {
-                Thread.sleep(200);
-            } catch (Exception ignored) {
-            }
+            ActivityCompat.requestPermissions(MainActivity.this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION,}, 0);
 
             if (isNoPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ||
                     isNoPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)) {
@@ -148,6 +141,25 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (isNoPermission(this, Manifest.permission.POST_NOTIFICATIONS)) {
+
+                ActivityCompat.requestPermissions(MainActivity.this,
+                        new String[]{Manifest.permission.POST_NOTIFICATIONS,}, 1);
+
+                if (isNoPermission(this, Manifest.permission.POST_NOTIFICATIONS)) {
+                    mainText.setText(R.string.notification_tips);
+                    btUpdateLocation.setText(R.string.setting_permission);
+                    btUpdateLocation.setOnClickListener(v -> {
+                        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                        intent.setData(Uri.fromParts("package", this.getPackageName(), null));
+                        startActivity(intent);
+                    });
+                    return;
+                }
+            }
+        }
+
         AMapLocationClient.updatePrivacyShow(context, true, true);
         AMapLocationClient.updatePrivacyAgree(context, true);
 
@@ -158,16 +170,11 @@ public class MainActivity extends AppCompatActivity {
             Message msg = new Message();
             Bundle data = new Bundle();
             if (aMapLocation.getErrorCode() == 0) {
-                double longitude = aMapLocation.getLongitude();
-                double latitude = aMapLocation.getLatitude();
-                String address = aMapLocation.getAddress();
-                long updateTime = aMapLocation.getTime();
-
                 data.putBoolean("status", true);
-                data.putDouble("longitude", longitude);
-                data.putDouble("latitude", latitude);
-                data.putString("address", address);
-                data.putLong("updateTime", updateTime);
+                data.putDouble("longitude", aMapLocation.getLongitude());
+                data.putDouble("latitude", aMapLocation.getLatitude());
+                data.putString("address", aMapLocation.getAddress());
+                data.putLong("updateTime", aMapLocation.getTime());
             } else {
                 // 定位失败，详见错误码表。 https://lbs.amap.com/api/android-location-sdk/guide/utilities/errorcode
                 String errorTips = getString(R.string.location_failed) + "\n"
@@ -188,7 +195,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         AMapLocationClientOption option = new AMapLocationClientOption();
-        option.setLocationMode(AMapLocationClientOption.AMapLocationMode.Battery_Saving);//低功耗模式。
+        option.setLocationMode(AMapLocationClientOption.AMapLocationMode.Battery_Saving);//低功耗模式
         option.setLocationPurpose(AMapLocationClientOption.AMapLocationPurpose.SignIn);
         option.setOnceLocationLatest(true);
 
@@ -196,16 +203,12 @@ public class MainActivity extends AppCompatActivity {
         mLocationClient.setLocationOption(option);//给定位客户端对象设置定位参数
         mLocationClient.startLocation();//启动定位
 
-        final String[] warnLevelStr = Utils.warnLevelStr;//00白色 ... 04红色
-        final String[] warnLevelDescription = Utils.warnLevelDescription;
-        final int[] IMPORTANT_INT = Utils.IMPORTANT_INT;
-
         // 创建预警信息通知通道
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
         for (int warnLevel = 0; warnLevel < 5; warnLevel++) {
-            String channelId = warnLevelStr[warnLevel];
-            NotificationChannel channel = new NotificationChannel(channelId, channelId, IMPORTANT_INT[warnLevel + 1]);
-            channel.setDescription(warnLevelDescription[warnLevel]);
+            String channelId = Utils.warnLevelStr[warnLevel];//00白色 ... 04红色
+            NotificationChannel channel = new NotificationChannel(channelId, channelId, Utils.IMPORTANT_INT[warnLevel + 1]);
+            channel.setDescription(Utils.warnLevelDescription[warnLevel]);
             notificationManager.createNotificationChannel(channel);
         }
     }

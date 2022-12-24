@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * 天气小部件
  */
-public class Widget1 extends BaseWidget {
+public class Widget1 extends WidgetBase {
 
     /**
      * 根据状态更新天气小部件

@@ -16,17 +16,15 @@
     <string name="temp_rang_example" translatable="false">22 ~ 28°</string>
     <string name="other_info" translatable="false">80% PM25:20 PM10:20</string>
     <string name="location_tips">请到设置里开启应用的定位权限</string>
+    <string name="notification_tips">请到设置里开启应用的通知权限，否则没有天气预警通知</string>
     <string name="location_failed">若获取权限后依旧定位失败，请关闭应用再打开，重新更新位置。</string>
     <string name="tips">若没有数据，请移除这个小部件，然后添加新的</string>
-    <string name="setting_permission">去开启定位权限</string>
+    <string name="setting_permission">去开启权限</string>
     <string name="icon_description">预警级别图标</string>
     <string name="update_tips">本APP只有桌面小部件，每小时自动刷新一次，点击小部件可立即刷新天气。\nAPP后续升级在冻它模块群: 781222669\n酷安&amp;Github @JARK006</string>
     <string name="qq_group_link" translatable="false">https://jq.qq.com/?_wv=1027&amp;k=ZsyKpCP8</string>
     <string name="go_qq_group">跳转QQ群</string>
     <string name="app_data">定位SDK由“高德”提供\n天气数据由“彩云天气”提供\n背景资源来源于“一加天气”</string>
     <string name="open_sources">开源地址</string>
-    <string name="appwidget_text">EXAMPLE</string>
-    <string name="add_widget">Add widget</string>
-    <string name="app_widget_description">This is an app widget description</string>
 
 </resources>

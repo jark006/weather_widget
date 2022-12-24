@@ -28,7 +28,7 @@ import java.util.zip.CRC32;
 /**
  * 天气小部件
  */
-public abstract class BaseWidget extends AppWidgetProvider {
+public abstract class WidgetBase extends AppWidgetProvider {
     final static String TAG = "Widget";
 
     final int UPDATE_SUCCESS = 0;
@@ -45,12 +45,14 @@ public abstract class BaseWidget extends AppWidgetProvider {
     public void onEnabled(Context context) {
         super.onEnabled(context);
         Log.d(TAG, "onEnabled: 创建小部件");
+        Utils.saveLog(context, "log.log", "onEnabled: 创建小部件");
     }
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
-        // widget1_info.xml     android:updatePeriodMillis
+        // widget1_info.xml     android:updatePeriodMillis 定时1小时
         Log.d(TAG, "onUpdate: 定时刷新");
+        Utils.saveLog(context, "log.log", "onUpdate: 定时刷新");
         getWeatherData(context, "定时刷新...");
     }
 
@@ -59,6 +61,7 @@ public abstract class BaseWidget extends AppWidgetProvider {
         super.onReceive(context, intent);
         if (Utils.REQUEST_MANUAL.equals(intent.getAction())) {
             Log.d(TAG, "onReceive: 手动刷新");
+            Utils.saveLog(context, "log.log", "onReceive: 手动刷新");
             getWeatherData(context, "手动刷新...");
         }
     }
@@ -123,6 +126,11 @@ public abstract class BaseWidget extends AppWidgetProvider {
 
     public void notify(Context context, List<WarnInfo> warnInfo) {
         for (WarnInfo info : warnInfo) {
+            if(Utils.hasNotify.contains(info.alertId))
+                continue;
+
+            Utils.hasNotify.add(info.alertId);
+
             int warnLevel = 0;
             String title = info.location + " " + info.status;
             int importantLevel = NotificationManager.IMPORTANCE_DEFAULT;
