@@ -57,10 +57,11 @@
             </intent-filter>
         </activity>
 
-        <service android:name="com.amap.api.location.APSService" /> <!-- 请到高德平台申请你的apiKey https://lbs.amap.com/api/android-location-sdk/guide/create-project/get-key -->
+        <!-- 请到高德平台申请你的apiKey https://lbs.amap.com/api/android-location-sdk/guide/create-project/get-key -->
+        <service android:name="com.amap.api.location.APSService" />
         <meta-data
             android:name="com.amap.api.v2.apikey"
-            android:value="50407ea2ca3f8f53e63b5524f791f0fe" />
+            android:value="b8145690726d3f427969758a5fcf405b" />
     </application>
 
 </manifest>

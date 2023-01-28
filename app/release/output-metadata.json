@@ -4,16 +4,16 @@
     "type": "APK",
     "kind": "Directory"
   },
-  "applicationId": "com.jark006.weather",
+  "applicationId": "io.github.jark006.weather",
   "variantName": "release",
   "elements": [
     {
       "type": "SINGLE",
       "filters": [],
       "attributes": [],
-      "versionCode": 20,
-      "versionName": "2.0",
-      "outputFile": "weather_widget_v2.0_2022-12-24_release.apk"
+      "versionCode": 21,
+      "versionName": "2.1",
+      "outputFile": "weather_widget_v2.1_2023-01-29_release.apk"
     }
   ],
   "elementType": "File"

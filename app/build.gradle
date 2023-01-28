@@ -8,11 +8,11 @@ android {
     compileSdk 33
 
     defaultConfig {
-        applicationId "com.jark006.weather"
+        applicationId "io.github.jark006.weather"
         minSdk 28
         targetSdk 33
-        versionCode 20
-        versionName '2.0'
+        versionCode 21
+        versionName '2.1'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         resValue "string", "appVer", "v${versionName}"
     }
@@ -40,7 +40,7 @@ android {
     buildFeatures {
         viewBinding true
     }
-    namespace 'com.jark006.weather'
+    namespace 'io.github.jark006.weather'
 }
 
 dependencies {
@@ -50,8 +50,8 @@ dependencies {
     //noinspection GradleDynamicVersion
     testImplementation 'junit:junit:4.13.2'
     implementation 'com.amap.api:location:6.2.0'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.4'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.0'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
     // Gson
     implementation 'com.google.code.gson:gson:2.10'
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
