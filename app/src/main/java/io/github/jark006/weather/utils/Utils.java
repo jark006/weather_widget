@@ -1,5 +1,6 @@
 package io.github.jark006.weather.utils;
 
+import android.app.AlertDialog;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
@@ -81,4 +82,10 @@ public class Utils {
             return "";
         }
     }
+
+    public static void textDialog(Context context, int titleResID, int contentResID) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle(titleResID).setMessage(contentResID).create().show();
+    }
+
 }

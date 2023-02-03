@@ -40,7 +40,7 @@ import io.github.jark006.weather.utils.Utils;
 public class MainActivity extends AppCompatActivity {
     final String tips = "\n\n小部件将会一直使用以上地址，若平时移动范围小于10公里，则不需要频繁更新。";
     TextView mainText;
-    Button btJumpToQQ, btUpdateLocation, btJumpToGithub;
+    Button btUpdateLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,11 +48,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         mainText = findViewById(R.id.mainText);
-        btJumpToQQ = findViewById(R.id.btJumpToQQ);
-        btJumpToGithub = findViewById(R.id.btJumpToGithub);
         btUpdateLocation = findViewById(R.id.btUpdateLocation);
 
-        btJumpToQQ.setOnClickListener(v -> {
+        findViewById(R.id.btJumpToQQ).setOnClickListener(v -> {
             try {
                 //【冻它模块 freezeit】(781222669) 的 key 为： ntLAwm7WxB0hVcetV7DsxfNTVN16cGUD
                 String key = "ntLAwm7WxB0hVcetV7DsxfNTVN16cGUD";
@@ -65,7 +63,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        btJumpToGithub.setOnClickListener(v -> startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/jark006/weather_widget"))));
+        findViewById(R.id.btJumpToGithub).setOnClickListener(v -> startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/jark006/weather_widget"))));
+
+        findViewById(R.id.privacy).setOnClickListener(v -> Utils.textDialog(this, R.string.privacy_title, R.string.privacy_content));
     }
 
     @SuppressLint("SetTextI18n")

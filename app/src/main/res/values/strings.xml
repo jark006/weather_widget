@@ -24,7 +24,49 @@
     <string name="update_tips">本APP只有桌面小部件，每小时自动刷新一次，点击小部件可立即刷新天气。\nAPP后续升级在冻它模块群: 781222669\n酷安&amp;Github @JARK006</string>
     <string name="qq_group_link" translatable="false">https://jq.qq.com/?_wv=1027&amp;k=ZsyKpCP8</string>
     <string name="go_qq_group">跳转QQ群</string>
-    <string name="app_data">定位SDK由“高德”提供\n天气数据由“彩云天气”提供\n背景资源来源于“一加天气”</string>
+    <string name="app_data">定位SDK由“高德”提供\n天气数据由“彩云天气”提供”</string>
     <string name="open_sources">开源地址</string>
+
+    <string name="privacy_content" translatable="false">
+更新日期：2023/02/03\n\n
+导言\n\n
+小天气 是一款由 JARK006 （以下简称“我们”）提供的产品。 您在使用我们的服务时，我们可能会收集和使用您的相关信息。我们希望通过本《隐私政策》向您说明，在使用我们的服务时，我们如何收集、使用、储存和分享这些信息，以及我们为您提供的访问、更新、控制和保护这些信息的方式。\n\n
+您使用或继续使用我们的服务，即意味着同意我们按照本《隐私政策》收集、使用、储存和分享您的相关信息。\n\n
+如对本《隐私政策》或相关事宜有任何问题，请通过 jark006@qq.com 与我们联系。\n\n\n
+
+一、 我们收集的信息\n\n
+我们收集的信息仅限定位信息及网络状态信息，除了位置信息需要上传服务获取天气数据以外，其他任何数据均保存在本地，不会上传。\n\n
+(1) 我们利用采集的设备定位信息仅用于获取该位置的实时天气数据，向服务器发送的数据仅含“经纬度”数据，不含其他关于您设备及个人的任何信息。\n\n
+(2) 我们依据网络状态信息进行辅助定位。\n\n
+
+二、 权限使用\n\n
+我们将在运行应用程序使用以下权限：\n\n
+(1) 通知权限，仅用于推送天气预警信息\n
+android.permission.POST_NOTIFICATIONS\n\n
+(2) 网络状态及联网权限，用于服务器通信\n
+android.permission.ACCESS_NETWORK_STATE
+android.permission.INTERNET\n\n
+(3) 定位相关权限，用于获取设备位置信息\n
+android.permission.ACCESS_COARSE_LOCATION
+android.permission.ACCESS_FINE_LOCATION
+android.permission.ACCESS_LOCATION_EXTRA_COMMANDS
+android.permission.ACCESS_BACKGROUND_LOCATION\n\n
+(4) 前台服务权限，用于在后台运行\n
+android.permission.FOREGROUND_SERVICE\n\n
+我们利用这些权限确保各项功能正常，不会干扰设备正常运作，且不会用于读取或分析您的私密信息。\n\n\n
+
+三、 与第三方服务提供商共享设备信息\n\n
+(1) 本引用引入高德定位SDK,可能会收集设备的周围WiFi名称、设备最终公网出口IP等信息用于辅助定位，具体隐私协议详见：
+https://developer.amap.com/pages/privacy/\n\n
+(2) 本应用使用彩云天气提供的服务，仅向彩云服务器发送经纬度数据已获取改位置的实时天气数据，不会泄漏包含任何关于设备及个人的信息。\n\n\n
+
+四、 您的权限\n\n
+如果您对我们的应用权限和安全策略有任何顾虑和疑惑，可随时通过 jark006@qq.com 向我们反馈以及获得帮助。\n\n\n
+
+五、 变更\n\n
+我们可能适时修订本《隐私政策》的条款。当变更发生时，我们会在版本更新时向您提示新的《隐私政策》，并向您说明生效日期。请您仔细阅读变更后的《隐私政策》内容，若您继续使用我们的服务，即表示您同意我们按照更新后的《隐私政策》处理您的个人信息。\n\n
+
+    </string>
+    <string name="privacy_title" translatable="false">隐私协议</string>
 
 </resources>
