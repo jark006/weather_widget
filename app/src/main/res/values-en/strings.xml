@@ -8,14 +8,14 @@
     <string name="widget_update_time">Updated</string>
     <string name="district">Local</string>
     <string name="tomorrow">Tomorrow</string>
-    <string name="big_tomorrow">Overmorrow</string>
+    <string name="overmorrow">Over morrow</string>
     <string name="tips">If there is no data, remove the widget and add a new one</string>
     <string name="setting_permission">Grant permission</string>
     <string name="icon_description">Alert level Icon</string>
     <string name="update_tips">This application only has a launcher widget, click the widget to update the weather immediately, usually automatically update once an hour, except from 0:00 to 6:00 in the morning.\nFollow-up upgrades of the application are in the freezeit module group: 781222669\nCoolapk&amp;Github @JARK006</string>
     <string name="go_qq_group">Jump to QQ group</string>
     <string name="location_tips">Please go to settings to enable location permission</string>
-    <string name="app_data">Location SDK provided by Amap.com, weather data from \"Caiyun Weather\"</string>
+    <string name="app_data">Location SDK provided by Amap.com, weather data from \"Qweather.com\"</string>
     <string name="open_sources">GitHub</string>
     <string name="notification_tips">Please go to settings to enable notification permission</string>
 </resources>

@@ -17,20 +17,10 @@ import java.util.HashSet;
 public class Utils {
 
     public final static HashSet<String> hasNotify = new HashSet<>();
-    public static final String REQUEST_MANUAL = "jark_weather_REQUEST_MANUAL";
 
     public static final double defLongitude = 113.381917;//默认在广州大学城
     public static final double defLatitude = 23.039316;
 
-
-    // 01台风 02暴雨 ... 18沙尘
-    public final static String[] warnTypeStr = {
-            "其他", "台风", "暴雨", "暴雪", "寒潮", "大风",
-            "沙尘暴", "高温", "干旱", "雷电", "冰雹", "霜冻",
-            "大雾", "霾", "道路结冰", "森林火灾", "雷雨大风",
-            "春季沙尘天气趋势预警", "沙尘"
-    };
-    //00白色 ... 04红色
     public final static String[] warnLevelStr = {"白色预警", "蓝色预警", "黄色预警", "橙色预警", "红色预警"};
     public final static String[] warnLevelDescription = {
             "台风或热带气旋预警",
@@ -73,11 +63,7 @@ public class Utils {
         try {
             ApplicationInfo info=context.getPackageManager().getApplicationInfo(
                     BuildConfig.APPLICATION_ID, PackageManager.GET_META_DATA);
-            if (info != null) {
-                return info.metaData.getString(metaName);
-            } else {
-                return "";
-            }
+            return info.metaData.getString(metaName);
         } catch (Exception e) {
             return "";
         }

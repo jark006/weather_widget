@@ -5,15 +5,14 @@ static def releaseTime() {
     return new Date().format("yyyy-MM-dd", TimeZone.getTimeZone("GMT+8"))
 }
 android {
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         applicationId "io.github.jark006.weather"
-        minSdk 19
-        targetSdk 33
-        versionCode 21
-        versionName '2.1'
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        minSdk 26
+        targetSdk 34
+        versionCode 30
+        versionName '3.0'
         resValue "string", "appVer", "v${versionName}"
     }
 
@@ -27,10 +26,9 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-    android.applicationVariants.all {
-        variant -> variant.outputs.all {
-            if (variant.buildType.name =='release')
-                outputFileName = "weather_widget_v${variant.versionName}_${releaseTime()}_${variant.buildType.name}.apk"
+    android.applicationVariants.configureEach {
+        variant -> variant.outputs.configureEach {
+            outputFileName = "weather_widget_v${variant.versionName}_${releaseTime()}_${variant.buildType.name}.apk"
         }
     }
     compileOptions {
@@ -44,16 +42,11 @@ android {
 }
 
 dependencies {
-    implementation 'com.google.android.material:material:1.7.0'
-    implementation 'androidx.appcompat:appcompat:1.5.1'
+    implementation 'com.google.android.material:material:1.9.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    //noinspection GradleDynamicVersion
-    testImplementation 'junit:junit:4.13.2'
-    implementation 'com.amap.api:location:6.2.0'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
-    // Gson
-    implementation 'com.google.code.gson:gson:2.10'
+    implementation 'com.amap.api:location:6.3.0'
+    implementation 'com.google.code.gson:gson:2.10.1'
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
-    implementation 'androidx.work:work-runtime:2.7.1'
+    implementation 'androidx.work:work-runtime:2.8.1'
 }

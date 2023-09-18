@@ -11,9 +11,9 @@
       "type": "SINGLE",
       "filters": [],
       "attributes": [],
-      "versionCode": 21,
-      "versionName": "2.1",
-      "outputFile": "weather_widget_v2.1_2023-02-03_release.apk"
+      "versionCode": 30,
+      "versionName": "3.0",
+      "outputFile": "weather_widget_v3.0_2023-09-18_release.apk"
     }
   ],
   "elementType": "File"

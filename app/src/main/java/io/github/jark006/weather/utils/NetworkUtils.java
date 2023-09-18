@@ -24,17 +24,15 @@ import okhttp3.Response;
 public class NetworkUtils {
 
     @Nullable
-    public static String getDataxx(String url) {
+    public static String getDataOkHttp(String url) {
         OkHttpClient okHttpClient = new OkHttpClient();
-        final Request request = new Request.Builder()
-                .url(url)
-                .build();
+        final Request request = new Request.Builder().url(url).build();
         String res = null;
         try {
             Response response = okHttpClient.newCall(request).execute();
-            assert response.body() != null;
-            res =  response.body().string();
-        }catch (Exception e) {
+            if (response.body() != null)
+                res = response.body().string();
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return res;
@@ -44,14 +42,14 @@ public class NetworkUtils {
         try {
             URL url = new URL(link);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setConnectTimeout(5 * 1000);
+            conn.setConnectTimeout(2 * 1000);
 
             int resCode = conn.getResponseCode();
             if (resCode == 200) {
                 InputStream is = conn.getInputStream();
                 ByteArrayOutputStream os = new ByteArrayOutputStream();
                 int len;
-                byte[] buffer = new byte[204800];  //200kb
+                byte[] buffer = new byte[1024 * 200];  // 200 KiB
                 while ((len = is.read(buffer)) != -1) {
                     os.write(buffer, 0, len);
                 }
@@ -59,14 +57,12 @@ public class NetworkUtils {
                 os.close();
                 return os.toString();
             } else {
-                Log.e(TAG,  String.format("返回码:%d，网络异常", resCode));
+                Log.e(TAG, String.format("NetworkUtils 返回码:%d 异常", resCode));
                 return null;
             }
         } catch (IOException e) {
-            e.printStackTrace();
             Log.e(TAG, "NetworkUtils IOException IO异常");
         }
-        Log.e(TAG, "NetworkUtils getData IO返回null");
         return null;
     }
 

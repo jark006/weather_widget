@@ -51,7 +51,7 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/location"
+                android:id="@+id/districtName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
@@ -65,7 +65,7 @@
                 android:gravity="center"
                 android:text="@string/temp_example"
                 android:textColor="@color/white"
-                android:textSize="50sp" />
+                android:textSize="60sp" />
         </LinearLayout>
 
     <LinearLayout
@@ -109,13 +109,14 @@
                     android:textColor="@color/white"
                     android:textSize="22sp" />
                 <TextView
-                    android:id="@+id/tomorrowRange"
+                    android:id="@+id/tomorrowDescription"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:gravity="top|center"
-                    android:text="@string/temp_rang_example"
+                    android:text="@string/tomorrow"
                     android:textColor="@color/white"
-                    android:textSize="12sp" />
+                    android:textSize="10sp"
+                    tools:ignore="SmallSp"  />
             </LinearLayout>
         </LinearLayout>
 
@@ -131,24 +132,24 @@
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:gravity="center"
-                android:text="@string/big_tomorrow"
+                android:text="@string/overmorrow"
                 android:textColor="@color/white"
                 android:textSize="16sp" />
             <ImageView
-                android:id="@+id/bigTomorrowImg"
+                android:id="@+id/overmorrowImg"
                 android:layout_gravity="center"
                 android:padding="5dp"
                 android:layout_width="60dp"
                 android:layout_height="wrap_content"
                 app:srcCompat="@drawable/ic_cloud"
-                android:contentDescription="@string/big_tomorrow" />
+                android:contentDescription="@string/overmorrow" />
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:orientation="vertical">
                 <TextView
-                    android:id="@+id/bigTomorrow"
+                    android:id="@+id/overmorrow"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center"
@@ -156,13 +157,14 @@
                     android:textColor="@color/white"
                     android:textSize="22sp" />
                 <TextView
-                    android:id="@+id/bigTomorrowRange"
+                    android:id="@+id/overmorrowDescription"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:gravity="top|center"
-                    android:text="@string/temp_rang_example"
+                    android:text="@string/overmorrow"
                     android:textColor="@color/white"
-                    android:textSize="12sp" />
+                    android:textSize="10sp"
+                    tools:ignore="SmallSp"  />
             </LinearLayout>
 
         </LinearLayout>
@@ -179,17 +181,5 @@
         android:textSize="10sp"
         android:typeface="monospace"
         tools:ignore="SmallSp" />
-
-    <TextView
-        android:id="@+id/hour_temp"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center"
-        android:text="@string/tips"
-        android:textColor="@color/white"
-        android:textSize="10sp"
-        android:typeface="monospace"
-        tools:ignore="SmallSp" />
-
 
 </LinearLayout>

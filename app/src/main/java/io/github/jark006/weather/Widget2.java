@@ -8,97 +8,89 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.widget.RemoteViews;
 
-import com.google.gson.Gson;
-import io.github.jark006.weather.bean.CodeName;
-import io.github.jark006.weather.bean.Daily;
-import io.github.jark006.weather.bean.Realtime;
-import io.github.jark006.weather.bean.Skycon;
-import io.github.jark006.weather.bean.Temperature;
-import io.github.jark006.weather.bean.WeatherBean;
+import io.github.jark006.weather.qweather.rain.Rain;
+import io.github.jark006.weather.qweather.realtime.RealTime;
+import io.github.jark006.weather.qweather.threeDay.Daily;
+import io.github.jark006.weather.qweather.threeDay.ThreeDay;
 import io.github.jark006.weather.utils.DateUtils;
 import io.github.jark006.weather.utils.ImageUtils;
-
-import java.util.List;
 
 /**
  * 天气小部件
  */
 public class Widget2 extends WidgetBase {
 
-    /**
-     * 根据状态更新天气小部件
-     *
-     * @param context           上下文
-     * @param status            更新状态
-     * @param weatherJsonOrTips 天气数据
-     */
+    @Override
+    public void showTips(Context context, String tips) {
+        ComponentName componentName = new ComponentName(context, this.getClass());
+        RemoteViews remoteViews = new RemoteViews(BuildConfig.APPLICATION_ID, R.layout.widget2);
+        remoteViews.setTextViewText(R.id.description, tips);
+        AppWidgetManager.getInstance(context).updateAppWidget(componentName, remoteViews);
+    }
+
     @Override
     @SuppressLint("DefaultLocale")
-    public void updateAppWidget(Context context, int status, String weatherJsonOrTips, boolean noLocation) {
+    public void updateAppWidget(Context context,
+                                RealTime realTime,
+                                ThreeDay threeDay,
+                                Rain rain,
+                                String districtName) {
+
         ComponentName componentName = new ComponentName(context, this.getClass());
         RemoteViews remoteViews = new RemoteViews(BuildConfig.APPLICATION_ID, R.layout.widget2);
 
         // 点击手动刷新的Intent
         remoteViews.setOnClickPendingIntent(R.id.widget_rl, createUpdatePendingIntent(context));
 
-        if (status != UPDATE_SUCCESS) {
-            remoteViews.setTextViewText(R.id.description, weatherJsonOrTips);
-            AppWidgetManager.getInstance(context).updateAppWidget(componentName, remoteViews);
-            return;
-        }
+        var tips = new StringBuilder();
 
-        // UPDATE_SUCCESS
-        WeatherBean weatherBean = new Gson().fromJson(weatherJsonOrTips, WeatherBean.class);
-
-
-        Realtime realtime = weatherBean.result.realtime;
-        Daily daily = weatherBean.result.daily;
-
-        List<CodeName> adCodes = weatherBean.result.alert.adcodes;
-        String district;
-        if (adCodes != null && adCodes.size() > 0)
-            district = adCodes.get(adCodes.size() - 1).name;
-        else
-            district = context.getString(R.string.district);
-        remoteViews.setTextViewText(R.id.location, district);
-
-        String updateTime = getFormatDate(System.currentTimeMillis(), DateUtils.HHmm);
-        remoteViews.setTextViewText(R.id.updateTime, updateTime);
-        remoteViews.setTextViewText(R.id.today_tem, (int) realtime.temperature + "°");
-
-        if (noLocation) {
-            remoteViews.setTextViewText(R.id.description, "请打开APP更新你的位置信息");
+        if (realTime == null) {
+            tips.append("realTime == null ");
+        } else if (realTime.now == null) {
+            tips.append("realTime.now == null ");
         } else {
-            String description = weatherBean.result.minutely.description;
-            remoteViews.setTextViewText(R.id.description, description);
+            String updateDate = getFormatDate(System.currentTimeMillis(), DateUtils.HHmm) + context.getString(R.string.widget_update_time);
+            remoteViews.setTextViewText(R.id.updateTime, updateDate+"\n"+districtName);
+            remoteViews.setTextViewText(R.id.today_tem, realTime.now.temp + "°");
+
+            // 是否白天
+            long hours = (System.currentTimeMillis() / 3600000 + 8) % 24;
+            boolean isDay = hours >= 6 && hours < 18;
+            // 设置背景
+            remoteViews.setInt(R.id.widget_rl, "setBackgroundResource",
+                    ImageUtils.getBgResourceId(Integer.parseInt(realTime.now.icon), isDay));
         }
 
-        // 明天预报
-        Skycon skycon = daily.skycon.get(1);
-        Temperature temperature1 = daily.temperature.get(1);
-        remoteViews.setImageViewResource(R.id.tomorrowImg, ImageUtils.getWeatherIcon(skycon.value));
-        remoteViews.setTextViewText(R.id.tomorrow, "明天 "+(int) temperature1.avg + "°");
-        remoteViews.setTextViewText(R.id.tomorrowRange, (int) temperature1.min
-                + " ~ " + (int) temperature1.max + "°");
+        if (rain == null) {
+            tips.append("rain == null ");
+        } else if (rain.summary == null) {
+            tips.append("rain.summary == null ");
+        } else {
+            remoteViews.setTextViewText(R.id.description, rain.summary);
+        }
 
-
-        // 天气描述
-        String skyCon = weatherBean.result.realtime.skycon;
-        // 降雨（雪）强度
-        double intensity = weatherBean.result.realtime.precipitation.local.intensity;
-
-        // 是否白天
-        long hours = (System.currentTimeMillis() / 3600000 + 8) % 24;
-        boolean isDay = hours > 6 && hours < 18;
-
-        // 设置背景
-        remoteViews.setInt(R.id.widget_rl, "setBackgroundResource", ImageUtils.getBgResourceId(skyCon, intensity, isDay));
+        if (threeDay == null) {
+            tips.append("threeDay == null ");
+        } else if (threeDay.code != null && !threeDay.code.equals("200")) {
+            tips.append("threeDay.code ").append(threeDay.code);
+        } else if (threeDay.daily == null) {
+            tips.append("threeDay.daily == null ");
+        } else if (threeDay.daily.size() < 3) {
+            tips.append("threeDay.daily.size() ").append(threeDay.daily.size());
+        } else {
+            // 明天预报
+            Daily tomorrow = threeDay.daily.get(1);
+            remoteViews.setImageViewResource(R.id.tomorrowImg, ImageUtils.getWeatherIcon(
+                    Integer.parseInt(tomorrow.iconDay)));
+            remoteViews.setTextViewText(R.id.tomorrow,
+                    (Integer.parseInt(tomorrow.tempMin) + Integer.parseInt(tomorrow.tempMax)) / 2
+                            + "° " + tomorrow.textDay);
+        }
+        if (tips.length() > 0)
+            remoteViews.setTextViewText(R.id.description, tips);
 
         // 刷新小部件UI
         AppWidgetManager.getInstance(context).updateAppWidget(componentName, remoteViews);
-
-        // 预警信息通知
-        notify(context, weatherBean.result.alert.content);
     }
 
 }

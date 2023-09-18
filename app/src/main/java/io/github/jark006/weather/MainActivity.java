@@ -19,6 +19,7 @@ import android.provider.Settings;
 import android.widget.Button;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -26,6 +27,7 @@ import androidx.core.content.ContextCompat;
 import com.amap.api.location.AMapLocationClient;
 import com.amap.api.location.AMapLocationClientOption;
 import com.amap.api.location.AMapLocationListener;
+
 import io.github.jark006.weather.utils.DateUtils;
 import io.github.jark006.weather.utils.Utils;
 
@@ -78,9 +80,15 @@ public class MainActivity extends AppCompatActivity {
         if (updateTime > 0) {
             double longitude = sf.getFloat("longitude", 0);
             double latitude = sf.getFloat("latitude", 0);
-            String address = sf.getString("address", "");
+            String address = sf.getString("address", "未知");
+            String cityName = sf.getString("cityName", "未知");
+            String districtName = sf.getString("districtName", "未知");
+            String adCode = sf.getString("adCode", "未知");
+
             mainText.setText("更新时间: " + DateUtils.getFormatDate(updateTime, DateUtils.yyyyMMddHHmm) +
-                    "\n经度: " + longitude + "\n纬度: " + latitude + "\n" + address + tips);
+                    "\n经度: " + longitude + "\n纬度: " + latitude + "\n区域编码: " + adCode +
+                    "\n城市：" + cityName + " 区县：" + districtName +
+                    "\n详细：" + address + "\n" + tips);
         } else {
             mainText.setText("暂无位置信息，请更新");
         }
@@ -91,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
     private final Handler handler = new Handler(Looper.getMainLooper()) {
         @SuppressLint("SetTextI18n")
         @Override
-        public void handleMessage(Message msg) {
+        public void handleMessage(@NonNull Message msg) {
             super.handleMessage(msg);
             boolean status = msg.getData().getBoolean("status");
 
@@ -104,14 +112,22 @@ public class MainActivity extends AppCompatActivity {
             double longitude = msg.getData().getDouble("longitude");
             double latitude = msg.getData().getDouble("latitude");
             String address = msg.getData().getString("address");
+            String cityName = msg.getData().getString("cityName");
+            String districtName = msg.getData().getString("districtName");
+            String adCode = msg.getData().getString("adCode");
             long updateTime = msg.getData().getLong("updateTime");
             mainText.setText("更新时间: " + DateUtils.getFormatDate(updateTime, DateUtils.yyyyMMddHHmm) +
-                    "\n经度: " + longitude + "\n纬度: " + latitude + "\n" + address + tips);
+                    "\n经度: " + longitude + "\n纬度: " + latitude + "\n区域编码: " + adCode +
+                    "\n城市：" + cityName + " 区县：" + districtName +
+                    "\n详细：" + address + "\n" + tips);
 
             SharedPreferences.Editor editor = getBaseContext().getSharedPreferences("locationInfo", Context.MODE_PRIVATE).edit();
             editor.putFloat("longitude", (float) longitude);
             editor.putFloat("latitude", (float) latitude);
             editor.putString("address", address);
+            editor.putString("cityName", cityName);
+            editor.putString("districtName", districtName);
+            editor.putString("adCode", adCode);
             editor.putLong("updateTime", updateTime);
             editor.apply();
         }
@@ -174,6 +190,9 @@ public class MainActivity extends AppCompatActivity {
                 data.putDouble("longitude", aMapLocation.getLongitude());
                 data.putDouble("latitude", aMapLocation.getLatitude());
                 data.putString("address", aMapLocation.getAddress());
+                data.putString("cityName", aMapLocation.getCity());
+                data.putString("districtName", aMapLocation.getDistrict());
+                data.putString("adCode", aMapLocation.getAdCode());
                 data.putLong("updateTime", aMapLocation.getTime());
             } else {
                 // 定位失败，详见错误码表。 https://lbs.amap.com/api/android-location-sdk/guide/utilities/errorcode

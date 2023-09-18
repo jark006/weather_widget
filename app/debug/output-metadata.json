@@ -1,0 +1,20 @@
+{
+  "version": 3,
+  "artifactType": {
+    "type": "APK",
+    "kind": "Directory"
+  },
+  "applicationId": "io.github.jark006.weather",
+  "variantName": "debug",
+  "elements": [
+    {
+      "type": "SINGLE",
+      "filters": [],
+      "attributes": [],
+      "versionCode": 22,
+      "versionName": "2.2",
+      "outputFile": "weather_widget_v2.2_2023-04-21_debug.apk"
+    }
+  ],
+  "elementType": "File"
+}

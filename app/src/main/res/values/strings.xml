@@ -11,7 +11,7 @@
     <string name="updateTime" translatable="false">06–13 15:10</string>
     <string name="district">本地</string>
     <string name="tomorrow">明天</string>
-    <string name="big_tomorrow">后天</string>
+    <string name="overmorrow">后天</string>
     <string name="temp_example" translatable="false">25°</string>
     <string name="temp_rang_example" translatable="false">22 ~ 28°</string>
     <string name="other_info" translatable="false">80% PM25:20 PM10:20</string>
@@ -24,7 +24,7 @@
     <string name="update_tips">本APP只有桌面小部件，每小时自动刷新一次，点击小部件可立即刷新天气。\nAPP后续升级在冻它模块群: 781222669\n酷安&amp;Github @JARK006</string>
     <string name="qq_group_link" translatable="false">https://jq.qq.com/?_wv=1027&amp;k=ZsyKpCP8</string>
     <string name="go_qq_group">跳转QQ群</string>
-    <string name="app_data">定位SDK由“高德”提供\n天气数据由“彩云天气”提供”</string>
+    <string name="app_data">定位SDK由“高德”提供\n天气数据由“和风天气”提供</string>
     <string name="open_sources">开源地址</string>
 
     <string name="privacy_content" translatable="false">
@@ -58,7 +58,7 @@ android.permission.FOREGROUND_SERVICE\n\n
 三、 与第三方服务提供商共享设备信息\n\n
 (1) 本引用引入高德定位SDK,可能会收集设备的周围WiFi名称、设备最终公网出口IP等信息用于辅助定位，具体隐私协议详见：
 https://developer.amap.com/pages/privacy/\n\n
-(2) 本应用使用彩云天气提供的服务，仅向彩云服务器发送经纬度数据已获取改位置的实时天气数据，不会泄漏包含任何关于设备及个人的信息。\n\n\n
+(2) 本应用使用“和风天气”提供的服务，仅向“和风”服务器发送经纬度数据已获取该位置的实时天气数据，不会泄漏包含任何关于设备及个人的信息。\n\n\n
 
 四、 您的权限\n\n
 如果您对我们的应用权限和安全策略有任何顾虑和疑惑，可随时通过 jark006@qq.com 向我们反馈以及获得帮助。\n\n\n
