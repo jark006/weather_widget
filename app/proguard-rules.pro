@@ -20,4 +20,5 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 -keep public class io.github.jark006.weather.qweather.**.** {*;}
+-keep public class io.github.jark006.weather.caiyun.** {*;}
 

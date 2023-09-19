@@ -24,11 +24,11 @@
     <string name="update_tips">本APP只有桌面小部件，每小时自动刷新一次，点击小部件可立即刷新天气。\nAPP后续升级在冻它模块群: 781222669\n酷安&amp;Github @JARK006</string>
     <string name="qq_group_link" translatable="false">https://jq.qq.com/?_wv=1027&amp;k=ZsyKpCP8</string>
     <string name="go_qq_group">跳转QQ群</string>
-    <string name="app_data">定位SDK由“高德”提供\n天气数据由“和风天气”提供</string>
+    <string name="app_data">定位SDK由“高德”提供\n天气数据由“和风天气”及“彩云天气”提供</string>
     <string name="open_sources">开源地址</string>
 
     <string name="privacy_content" translatable="false">
-更新日期：2023/02/03\n\n
+更新日期：2023/09/20\n\n
 导言\n\n
 小天气 是一款由 JARK006 （以下简称“我们”）提供的产品。 您在使用我们的服务时，我们可能会收集和使用您的相关信息。我们希望通过本《隐私政策》向您说明，在使用我们的服务时，我们如何收集、使用、储存和分享这些信息，以及我们为您提供的访问、更新、控制和保护这些信息的方式。\n\n
 您使用或继续使用我们的服务，即意味着同意我们按照本《隐私政策》收集、使用、储存和分享您的相关信息。\n\n
@@ -58,7 +58,7 @@ android.permission.FOREGROUND_SERVICE\n\n
 三、 与第三方服务提供商共享设备信息\n\n
 (1) 本引用引入高德定位SDK,可能会收集设备的周围WiFi名称、设备最终公网出口IP等信息用于辅助定位，具体隐私协议详见：
 https://developer.amap.com/pages/privacy/\n\n
-(2) 本应用使用“和风天气”提供的服务，仅向“和风”服务器发送经纬度数据已获取该位置的实时天气数据，不会泄漏包含任何关于设备及个人的信息。\n\n\n
+(2) 本应用使用“和风天气”及“彩云天气”提供的服务，仅向其服务器发送经纬度数据获取该位置的实时天气数据，不会泄漏包含任何关于设备及个人的信息。\n\n\n
 
 四、 您的权限\n\n
 如果您对我们的应用权限和安全策略有任何顾虑和疑惑，可随时通过 jark006@qq.com 向我们反馈以及获得帮助。\n\n\n
@@ -68,5 +68,8 @@ https://developer.amap.com/pages/privacy/\n\n
 
     </string>
     <string name="privacy_title" translatable="false">隐私协议</string>
+    <string name="widget_caiyun1_description">彩云大型</string>
+    <string name="hour_temp" translatable="false">08H[ 24 25 26 ]12H</string>
+    <string name="widget_caiyun2_description">彩云小型</string>
 
 </resources>

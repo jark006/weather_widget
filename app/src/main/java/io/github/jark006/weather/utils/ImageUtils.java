@@ -179,4 +179,63 @@ public class ImageUtils {
         }
         return R.drawable.bg_widget_sunny;
     }
+
+    public static int getSkyconIconCaiyun(String weather) {
+        switch (weather) {
+            case "PARTLY_CLOUDY_DAY":
+            case "PARTLY_CLOUDY_NIGHT":
+                return R.drawable.ic_cloud;
+            case "CLOUDY":
+                return R.drawable.ic_nosun;
+            case "WIND":
+                return R.drawable.ic_wind;
+            case "HAZE":
+                return R.drawable.ic_haze;
+            case "RAIN":
+                return R.drawable.ic_rain;
+            case "SNOW":
+                return R.drawable.ic_snow;
+            default: // "CLEAR_DAY" "CLEAR_NIGHT":
+                return R.drawable.ic_sunny;
+        }
+    }
+
+    public static int getBgResourceIdCaiyun(String weather, boolean isDay) {
+        switch (weather) {
+            case "CLEAR_DAY":
+                return R.drawable.bg_widget_sunny;
+            case "CLEAR_NIGHT":
+                return R.drawable.bg_widget_sunny_night;
+            case "PARTLY_CLOUDY_DAY":
+                return R.drawable.bg_widget_cloudy;
+            case "PARTLY_CLOUDY_NIGHT":
+                return R.drawable.bg_widget_cloudy_night;
+            case "CLOUDY":
+                return isDay ? R.drawable.bg_widget_overcast : R.drawable.bg_widget_overcast_night;
+            case "LIGHT_HAZE":
+            case "MODERATE_HAZE":
+            case "HEAVY_HAZE":
+                return isDay ? R.drawable.bg_widget_haze : R.drawable.bg_widget_haze_night;
+            case "LIGHT_RAIN":
+                return isDay ? R.drawable.bg_widget_drizzle : R.drawable.bg_widget_drizzle_night;
+            case "MODERATE_RAIN":
+                return isDay ? R.drawable.bg_widget_rain : R.drawable.bg_widget_rain_night;
+            case "HEAVY_RAIN":
+                return isDay ? R.drawable.bg_widget_downpour : R.drawable.bg_widget_downpour_night;
+            case "STORM_RAIN":
+                return isDay ? R.drawable.bg_widget_rainstorm : R.drawable.bg_widget_rainstorm_night;
+            case "FOG":
+                return isDay ? R.drawable.bg_widget_fog : R.drawable.bg_widget_fog_night;
+            case "LIGHT_SNOW":
+            case "MODERATE_SNOW":
+            case "HEAVY_SNOW":
+            case "STORM_SNOW":
+                return isDay ? R.drawable.bg_widget_snow : R.drawable.bg_widget_snow_night;
+            case "DUST":
+            case "WIND":
+                return isDay ? R.drawable.bg_widget_sandstorm : R.drawable.bg_widget_sandstorm_night;
+            default:
+                return isDay ? R.drawable.bg_widget_sunny : R.drawable.bg_widget_sunny_night;
+        }
+    }
 }

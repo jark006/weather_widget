@@ -39,9 +39,9 @@ public abstract class WidgetBase extends AppWidgetProvider {
     final static String TAG = "JARK_Widget";
     final static String REQUEST_MANUAL = "jark_weather_REQUEST_MANUAL";
     final static String[] APIKEY_LIST = {
-            "71a91885a2524ca8801c67bc9b3d354c",
-            "e35f96422e814236a133a38fc8f25d7c"
-    }; // qweather.com 和风 API
+            "XXX",
+            "XXX"
+    }; // qweather.com 和风天气 APIKEY
 
     final Map<String, Integer> warnColorMap = Map.of(
             "White", 0,
@@ -76,7 +76,6 @@ public abstract class WidgetBase extends AppWidgetProvider {
 
     /**
      * 获取天气数据
-     * <a href=https://devapi.qweather.com/v7/grid-weather/now?location=113.39,23.04&key=71a91885a2524ca8801c67bc9b3d354c>链接</a>
      */
     @SuppressLint("DefaultLocale")
     private void getWeatherData(Context context, @NonNull String tips) {
@@ -99,7 +98,9 @@ public abstract class WidgetBase extends AppWidgetProvider {
             }
 
             long nowTime = System.currentTimeMillis() / 1000;
-            var APIKEY = APIKEY_LIST[(int)(nowTime&1)];
+
+            //一个KEY免费请求量太少， 多备几个随机选
+            var APIKEY = APIKEY_LIST[(int)(nowTime % APIKEY_LIST.length)];
 
             try {
 

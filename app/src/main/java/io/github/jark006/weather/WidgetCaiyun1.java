@@ -1,0 +1,116 @@
+package io.github.jark006.weather;
+
+import static io.github.jark006.weather.utils.DateUtils.getFormatDate;
+
+import android.annotation.SuppressLint;
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
+import android.content.Context;
+import android.widget.RemoteViews;
+
+import java.util.Objects;
+
+import io.github.jark006.weather.caiyun.Caiyun;
+import io.github.jark006.weather.utils.DateUtils;
+import io.github.jark006.weather.utils.ImageUtils;
+
+public class WidgetCaiyun1 extends WidgetCaiyunBase {
+
+    @Override
+    public void showTips(Context context, String tips) {
+        ComponentName componentName = new ComponentName(context, this.getClass());
+        RemoteViews remoteViews = new RemoteViews(BuildConfig.APPLICATION_ID, R.layout.widget_caiyun1);
+        remoteViews.setTextViewText(R.id.today_other, tips);
+        AppWidgetManager.getInstance(context).updateAppWidget(componentName, remoteViews);
+    }
+
+    @Override
+    @SuppressLint("DefaultLocale")
+    public void updateAppWidget(Context context, Caiyun caiyun, String districtName) {
+
+        ComponentName componentName = new ComponentName(context, this.getClass());
+        RemoteViews remoteViews = new RemoteViews(BuildConfig.APPLICATION_ID, R.layout.widget_caiyun1);
+
+        // 点击手动刷新的Intent
+        remoteViews.setOnClickPendingIntent(R.id.widget_rl, createUpdatePendingIntent(context));
+
+        if (districtName.length() > 0)
+            remoteViews.setTextViewText(R.id.districtName, districtName);
+
+        var tips = new StringBuilder();
+        if (caiyun == null) {
+            tips.append("caiyun == null ");
+        } else if (caiyun.result == null) {
+            tips.append("caiyun.result == null ");
+        } else {
+            var realtime = caiyun.result.realtime;
+            if (realtime != null) {
+                String updateDate = getFormatDate(System.currentTimeMillis(), DateUtils.HHmm) + context.getString(R.string.widget_update_time);
+                remoteViews.setTextViewText(R.id.updateTime, updateDate);
+                remoteViews.setTextViewText(R.id.today_tem, (int) realtime.temperature + "°");
+
+                var air = realtime.air_quality;
+                String otherInfo = String.format("%d%% PM2.5:%.0f PM10:%.0f O₃:%.0f SO₂:%.0f NO₂:%.0f CO:%.1f %s",
+                        (int) (realtime.humidity * 100), air.pm25, air.pm10, air.o3, air.so2, air.no2, air.co,
+                        air.description.chn);
+                remoteViews.setTextViewText(R.id.today_other, otherInfo);
+
+                // 是否白天
+                long hours = (System.currentTimeMillis() / 3600000 + 8) % 24;
+                boolean isDay = hours >= 6 && hours < 18;
+                remoteViews.setInt(R.id.widget_rl, "setBackgroundResource",
+                        ImageUtils.getBgResourceIdCaiyun(realtime.skycon, isDay));
+            }
+
+            var minutely = caiyun.result.minutely;
+            if (minutely != null) {
+                remoteViews.setTextViewText(R.id.description, minutely.description);
+
+                var hourly = caiyun.result.hourly;
+                if (hourly != null) {
+                    var tempList = hourly.temperature;
+
+                    if (!Objects.equals(minutely.description, hourly.description))
+                        remoteViews.setTextViewText(R.id.hour_temp, hourly.description);
+                    else if (tempList != null && tempList.size() > 10) {
+                        var tempIn10hours = new StringBuilder(); // 未来10小时的温度
+                        tempIn10hours.append(tempList.get(1).datetime.substring(11, 13)).append("时[");
+                        double gap = (tempList.get(1).value - tempList.get(0).value); // 误差校准
+                        for (int i = 1; i <= 10; i++)
+                            tempIn10hours.append((int) (tempList.get(i).value - gap)).append("° ");
+                        tempIn10hours.setCharAt(tempIn10hours.length() - 1, ']'); // 把最后的空格换成 ']'
+                        tempIn10hours.append(tempList.get(10).datetime.substring(11, 13)).append("时");
+                        remoteViews.setTextViewText(R.id.hour_temp, tempIn10hours.toString());
+                    }
+                }
+            }
+
+            var daily = caiyun.result.daily;
+            if (daily != null && daily.temperature != null && daily.temperature.size() > 2) {
+                var tomorrow = daily.temperature.get(1);
+                remoteViews.setTextViewText(R.id.tomorrow, (int) tomorrow.avg + "°");
+                remoteViews.setTextViewText(R.id.tomorrowRange,
+                        (int) tomorrow.min + " ~ " + (int) tomorrow.max + "°");
+
+                var overmorrow = daily.temperature.get(2);
+                remoteViews.setTextViewText(R.id.overmorrow, (int) overmorrow.avg + "°");
+                remoteViews.setTextViewText(R.id.overmorrowRange,
+                        (int) overmorrow.min + " ~ " + (int) overmorrow.max + "°");
+            }
+            if (daily != null && daily.skycon != null && daily.skycon.size() > 2) {
+                var tomorrow = daily.skycon.get(1);
+                remoteViews.setInt(R.id.tomorrowImg, "setBackgroundResource",
+                        ImageUtils.getSkyconIconCaiyun(tomorrow.value));
+                var overmorrow = daily.skycon.get(2);
+                remoteViews.setInt(R.id.overmorrowImg, "setBackgroundResource",
+                        ImageUtils.getSkyconIconCaiyun(overmorrow.value));
+            }
+        }
+
+        if (tips.length() > 0)
+            remoteViews.setTextViewText(R.id.today_other, tips);
+
+        // 刷新小部件UI
+        AppWidgetManager.getInstance(context).updateAppWidget(componentName, remoteViews);
+    }
+}
