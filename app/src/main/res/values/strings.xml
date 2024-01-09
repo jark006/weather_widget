@@ -21,11 +21,9 @@
     <string name="tips">若没有数据，请移除这个小部件，然后添加新的</string>
     <string name="setting_permission">去开启权限</string>
     <string name="icon_description">预警级别图标</string>
-    <string name="update_tips">本APP只有桌面小部件，每小时自动刷新一次，点击小部件可立即刷新天气。\nAPP后续升级在冻它模块群: 781222669\n酷安&amp;Github @JARK006</string>
-    <string name="qq_group_link" translatable="false">https://jq.qq.com/?_wv=1027&amp;k=ZsyKpCP8</string>
-    <string name="go_qq_group">跳转QQ群</string>
+    <string name="update_tips">本APP只有桌面小部件，每小时自动刷新一次，点击小部件可立即刷新天气。\n酷安&amp;Github @JARK006</string>
     <string name="app_data">定位SDK由“高德”提供\n天气数据由“和风天气”及“彩云天气”提供</string>
-    <string name="open_sources">开源地址</string>
+    <string name="open_sources">Github 开源地址</string>
 
     <string name="privacy_content" translatable="false">
 更新日期：2023/09/20\n\n

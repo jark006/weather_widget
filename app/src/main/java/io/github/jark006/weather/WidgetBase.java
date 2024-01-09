@@ -39,8 +39,8 @@ public abstract class WidgetBase extends AppWidgetProvider {
     final static String TAG = "JARK_Widget";
     final static String REQUEST_MANUAL = "jark_weather_REQUEST_MANUAL";
     final static String[] APIKEY_LIST = {
-            "XXX",
-            "XXX"
+            "71a91885a2524ca8801c67bc9b3d354c",
+            "e35f96422e814236a133a38fc8f25d7c"
     }; // qweather.com 和风天气 APIKEY
 
     final Map<String, Integer> warnColorMap = Map.of(

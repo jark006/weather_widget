@@ -8,8 +8,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.widget.RemoteViews;
 
-import java.util.Objects;
-
 import io.github.jark006.weather.caiyun.Caiyun;
 import io.github.jark006.weather.utils.DateUtils;
 import io.github.jark006.weather.utils.ImageUtils;
@@ -37,6 +35,7 @@ public class WidgetCaiyun1 extends WidgetCaiyunBase {
         if (districtName.length() > 0)
             remoteViews.setTextViewText(R.id.districtName, districtName);
 
+        String updateTime = getFormatDate(System.currentTimeMillis(), DateUtils.HHmm);
         var tips = new StringBuilder();
         if (caiyun == null) {
             tips.append("caiyun == null ");
@@ -45,9 +44,8 @@ public class WidgetCaiyun1 extends WidgetCaiyunBase {
         } else {
             var realtime = caiyun.result.realtime;
             if (realtime != null) {
-                String updateDate = getFormatDate(System.currentTimeMillis(), DateUtils.HHmm) + context.getString(R.string.widget_update_time);
-                remoteViews.setTextViewText(R.id.updateTime, updateDate);
-                remoteViews.setTextViewText(R.id.today_tem, (int) realtime.temperature + "°");
+                remoteViews.setTextViewText(R.id.updateTime, updateTime + context.getString(R.string.widget_update_time));
+                remoteViews.setTextViewText(R.id.today_tem, realtime.temperature + "°");
 
                 var air = realtime.air_quality;
                 String otherInfo = String.format("%d%% PM2.5:%.0f PM10:%.0f O₃:%.0f SO₂:%.0f NO₂:%.0f CO:%.1f %s",
@@ -64,15 +62,12 @@ public class WidgetCaiyun1 extends WidgetCaiyunBase {
 
             var minutely = caiyun.result.minutely;
             if (minutely != null) {
-                remoteViews.setTextViewText(R.id.description, minutely.description);
-
+                var description = minutely.description;
                 var hourly = caiyun.result.hourly;
                 if (hourly != null) {
+                    description+="。 "+hourly.description;
                     var tempList = hourly.temperature;
-
-                    if (!Objects.equals(minutely.description, hourly.description))
-                        remoteViews.setTextViewText(R.id.hour_temp, hourly.description);
-                    else if (tempList != null && tempList.size() > 10) {
+                    if (tempList != null && tempList.size() > 10) {
                         var tempIn10hours = new StringBuilder(); // 未来10小时的温度
                         tempIn10hours.append(tempList.get(1).datetime.substring(11, 13)).append("时[");
                         double gap = (tempList.get(1).value - tempList.get(0).value); // 误差校准
@@ -83,6 +78,7 @@ public class WidgetCaiyun1 extends WidgetCaiyunBase {
                         remoteViews.setTextViewText(R.id.hour_temp, tempIn10hours.toString());
                     }
                 }
+                remoteViews.setTextViewText(R.id.description, description);
             }
 
             var daily = caiyun.result.daily;
@@ -108,7 +104,7 @@ public class WidgetCaiyun1 extends WidgetCaiyunBase {
         }
 
         if (tips.length() > 0)
-            remoteViews.setTextViewText(R.id.today_other, tips);
+            remoteViews.setTextViewText(R.id.today_other, updateTime + "更新失败：" + tips);
 
         // 刷新小部件UI
         AppWidgetManager.getInstance(context).updateAppWidget(componentName, remoteViews);

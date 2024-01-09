@@ -27,29 +27,11 @@
                 android:text="@string/update_tips"
                 android:textSize="16sp" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
+            <Button
+                android:id="@+id/btJumpToGithub"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:gravity="center_horizontal"
-                android:orientation="horizontal"
-                android:paddingBottom="60dp">
-
-                <Button
-                    android:id="@+id/btJumpToQQ"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/go_qq_group" />
-
-                <View
-                    android:layout_width="60dp"
-                    android:layout_height="0dp" />
-
-                <Button
-                    android:id="@+id/btJumpToGithub"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/open_sources" />
-            </LinearLayout>
+                android:text="@string/open_sources" />
 
             <TextView
                 android:id="@+id/mainText"

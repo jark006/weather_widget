@@ -31,6 +31,7 @@ public class WidgetCaiyun2 extends WidgetCaiyunBase {
         // 点击手动刷新的Intent
         remoteViews.setOnClickPendingIntent(R.id.widget_rl, createUpdatePendingIntent(context));
 
+        String updateTime = getFormatDate(System.currentTimeMillis(), DateUtils.HHmm);
         var tips = new StringBuilder();
         if (caiyun == null) {
             tips.append("caiyun == null ");
@@ -39,8 +40,8 @@ public class WidgetCaiyun2 extends WidgetCaiyunBase {
         } else {
             var realtime = caiyun.result.realtime;
             if (realtime != null) {
-                String updateDate = getFormatDate(System.currentTimeMillis(), DateUtils.HHmm) + context.getString(R.string.widget_update_time);
-                remoteViews.setTextViewText(R.id.updateTime, updateDate + "\n" + districtName);
+                remoteViews.setTextViewText(R.id.updateTime, updateTime +
+                        context.getString(R.string.widget_update_time) + "\n" + districtName);
                 remoteViews.setTextViewText(R.id.today_tem, (int) realtime.temperature + "°");
 
                 // 是否白天
@@ -68,7 +69,7 @@ public class WidgetCaiyun2 extends WidgetCaiyunBase {
         }
 
         if (tips.length() > 0)
-            remoteViews.setTextViewText(R.id.description, tips);
+            remoteViews.setTextViewText(R.id.description, updateTime + "更新失败：" + tips);
 
         // 刷新小部件UI
         AppWidgetManager.getInstance(context).updateAppWidget(componentName, remoteViews);

@@ -1,7 +1,6 @@
 package io.github.jark006.weather;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -28,6 +27,8 @@ import com.amap.api.location.AMapLocationClient;
 import com.amap.api.location.AMapLocationClientOption;
 import com.amap.api.location.AMapLocationListener;
 
+import java.util.Locale;
+
 import io.github.jark006.weather.utils.DateUtils;
 import io.github.jark006.weather.utils.Utils;
 
@@ -40,7 +41,7 @@ import io.github.jark006.weather.utils.Utils;
 //获取两个SHA1后到高德平台设置获取key
 
 public class MainActivity extends AppCompatActivity {
-    final String tips = "\n\n小部件将会一直使用以上地址，若平时移动范围小于10公里，则不需要频繁更新。";
+    final String tips = "小部件将会一直使用以上地址，若平时移动范围小于10公里，则不需要频繁更新。";
     TextView mainText;
     Button btUpdateLocation;
 
@@ -52,25 +53,10 @@ public class MainActivity extends AppCompatActivity {
         mainText = findViewById(R.id.mainText);
         btUpdateLocation = findViewById(R.id.btUpdateLocation);
 
-        findViewById(R.id.btJumpToQQ).setOnClickListener(v -> {
-            try {
-                //【冻它模块 freezeit】(781222669) 的 key 为： ntLAwm7WxB0hVcetV7DsxfNTVN16cGUD
-                String key = "ntLAwm7WxB0hVcetV7DsxfNTVN16cGUD";
-                Intent intent = new Intent();
-                intent.setData(Uri.parse("mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D" + key));
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
-            } catch (Exception e) {
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.qq_group_link))));
-            }
-        });
-
         findViewById(R.id.btJumpToGithub).setOnClickListener(v -> startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/jark006/weather_widget"))));
-
         findViewById(R.id.privacy).setOnClickListener(v -> Utils.textDialog(this, R.string.privacy_title, R.string.privacy_content));
     }
 
-    @SuppressLint("SetTextI18n")
     @Override
     public void onResume() {
         super.onResume();
@@ -85,10 +71,10 @@ public class MainActivity extends AppCompatActivity {
             String districtName = sf.getString("districtName", "未知");
             String adCode = sf.getString("adCode", "未知");
 
-            mainText.setText("更新时间: " + DateUtils.getFormatDate(updateTime, DateUtils.yyyyMMddHHmm) +
-                    "\n经度: " + longitude + "\n纬度: " + latitude + "\n区域编码: " + adCode +
-                    "\n城市：" + cityName + " 区县：" + districtName +
-                    "\n详细：" + address + "\n" + tips);
+            mainText.setText(String.format(Locale.CHINA,
+                    "更新时间: %s\n经度: %.5f\n纬度: %.5f\n区域：%s %s 编码: %s\n\n%s\n\n%s",
+                    DateUtils.getFormatDate(updateTime, DateUtils.yyyyMMddHHmm)
+                    , longitude, latitude, cityName, districtName, adCode, address, tips));
         } else {
             mainText.setText("暂无位置信息，请更新");
         }
@@ -97,7 +83,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private final Handler handler = new Handler(Looper.getMainLooper()) {
-        @SuppressLint("SetTextI18n")
         @Override
         public void handleMessage(@NonNull Message msg) {
             super.handleMessage(msg);
@@ -116,10 +101,11 @@ public class MainActivity extends AppCompatActivity {
             String districtName = msg.getData().getString("districtName");
             String adCode = msg.getData().getString("adCode");
             long updateTime = msg.getData().getLong("updateTime");
-            mainText.setText("更新时间: " + DateUtils.getFormatDate(updateTime, DateUtils.yyyyMMddHHmm) +
-                    "\n经度: " + longitude + "\n纬度: " + latitude + "\n区域编码: " + adCode +
-                    "\n城市：" + cityName + " 区县：" + districtName +
-                    "\n详细：" + address + "\n" + tips);
+
+            mainText.setText(String.format(Locale.CHINA,
+                    "更新时间: %s\n经度: %.5f\n纬度: %.5f\n区域：%s %s 编码: %s\n\n%s\n\n%s",
+                    DateUtils.getFormatDate(updateTime, DateUtils.yyyyMMddHHmm),
+                    longitude, latitude, cityName, districtName, adCode, address, tips));
 
             SharedPreferences.Editor editor = getBaseContext().getSharedPreferences("locationInfo", Context.MODE_PRIVATE).edit();
             editor.putFloat("longitude", (float) longitude);
@@ -157,22 +143,21 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                isNoPermission(this, Manifest.permission.POST_NOTIFICATIONS)) {
+
+            ActivityCompat.requestPermissions(MainActivity.this,
+                    new String[]{Manifest.permission.POST_NOTIFICATIONS,}, 1);
+
             if (isNoPermission(this, Manifest.permission.POST_NOTIFICATIONS)) {
-
-                ActivityCompat.requestPermissions(MainActivity.this,
-                        new String[]{Manifest.permission.POST_NOTIFICATIONS,}, 1);
-
-                if (isNoPermission(this, Manifest.permission.POST_NOTIFICATIONS)) {
-                    mainText.setText(R.string.notification_tips);
-                    btUpdateLocation.setText(R.string.setting_permission);
-                    btUpdateLocation.setOnClickListener(v -> {
-                        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                        intent.setData(Uri.fromParts("package", this.getPackageName(), null));
-                        startActivity(intent);
-                    });
-                    return;
-                }
+                mainText.setText(R.string.notification_tips);
+                btUpdateLocation.setText(R.string.setting_permission);
+                btUpdateLocation.setOnClickListener(v -> {
+                    Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                    intent.setData(Uri.fromParts("package", this.getPackageName(), null));
+                    startActivity(intent);
+                });
+                return;
             }
         }
 
