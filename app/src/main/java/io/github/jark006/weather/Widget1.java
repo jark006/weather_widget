@@ -42,7 +42,7 @@ public class Widget1 extends WidgetBase {
         // 点击手动刷新的Intent
         remoteViews.setOnClickPendingIntent(R.id.widget_rl, createUpdatePendingIntent(context));
 
-        if (districtName.length() > 0)
+        if (!districtName.isEmpty())
             remoteViews.setTextViewText(R.id.districtName, districtName);
 
         var tips = new StringBuilder();

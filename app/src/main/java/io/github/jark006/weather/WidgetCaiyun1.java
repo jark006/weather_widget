@@ -32,7 +32,7 @@ public class WidgetCaiyun1 extends WidgetCaiyunBase {
         // 点击手动刷新的Intent
         remoteViews.setOnClickPendingIntent(R.id.widget_rl, createUpdatePendingIntent(context));
 
-        if (districtName.length() > 0)
+        if (!districtName.isEmpty())
             remoteViews.setTextViewText(R.id.districtName, districtName);
 
         String updateTime = getFormatDate(System.currentTimeMillis(), DateUtils.HHmm);
@@ -45,7 +45,7 @@ public class WidgetCaiyun1 extends WidgetCaiyunBase {
             var realtime = caiyun.result.realtime;
             if (realtime != null) {
                 remoteViews.setTextViewText(R.id.updateTime, updateTime + context.getString(R.string.widget_update_time));
-                remoteViews.setTextViewText(R.id.today_tem, realtime.temperature + "°");
+                remoteViews.setTextViewText(R.id.today_tem, (int)Math.ceil(realtime.temperature) + "°");
 
                 var air = realtime.air_quality;
                 String otherInfo = String.format("%d%% PM2.5:%.0f PM10:%.0f O₃:%.0f SO₂:%.0f NO₂:%.0f CO:%.1f %s",
@@ -72,7 +72,7 @@ public class WidgetCaiyun1 extends WidgetCaiyunBase {
                         tempIn10hours.append(tempList.get(1).datetime.substring(11, 13)).append("时[");
                         double gap = (tempList.get(1).value - tempList.get(0).value); // 误差校准
                         for (int i = 1; i <= 10; i++)
-                            tempIn10hours.append((int) (tempList.get(i).value - gap)).append("° ");
+                            tempIn10hours.append((int)Math.ceil(tempList.get(i).value - gap)).append("° ");
                         tempIn10hours.setCharAt(tempIn10hours.length() - 1, ']'); // 把最后的空格换成 ']'
                         tempIn10hours.append(tempList.get(10).datetime.substring(11, 13)).append("时");
                         remoteViews.setTextViewText(R.id.hour_temp, tempIn10hours.toString());
@@ -84,14 +84,14 @@ public class WidgetCaiyun1 extends WidgetCaiyunBase {
             var daily = caiyun.result.daily;
             if (daily != null && daily.temperature != null && daily.temperature.size() > 2) {
                 var tomorrow = daily.temperature.get(1);
-                remoteViews.setTextViewText(R.id.tomorrow, (int) tomorrow.avg + "°");
+                remoteViews.setTextViewText(R.id.tomorrow, (int)Math.ceil(tomorrow.avg) + "°");
                 remoteViews.setTextViewText(R.id.tomorrowRange,
-                        (int) tomorrow.min + " ~ " + (int) tomorrow.max + "°");
+                        (int)Math.ceil(tomorrow.min) + " ~ " + (int)Math.ceil(tomorrow.max) + "°");
 
                 var overmorrow = daily.temperature.get(2);
-                remoteViews.setTextViewText(R.id.overmorrow, (int) overmorrow.avg + "°");
+                remoteViews.setTextViewText(R.id.overmorrow, (int)Math.ceil(overmorrow.avg) + "°");
                 remoteViews.setTextViewText(R.id.overmorrowRange,
-                        (int) overmorrow.min + " ~ " + (int) overmorrow.max + "°");
+                        (int)Math.ceil(overmorrow.min) + " ~ " + (int)Math.ceil(overmorrow.max) + "°");
             }
             if (daily != null && daily.skycon != null && daily.skycon.size() > 2) {
                 var tomorrow = daily.skycon.get(1);

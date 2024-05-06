@@ -89,7 +89,7 @@ public abstract class WidgetBase extends AppWidgetProvider {
             double latitude = sf.getFloat("latitude", 90); // 北极
 
             String districtName = sf.getString("districtName", "");
-            if (districtName.length() == 0)
+            if (districtName.isEmpty())
                 districtName = sf.getString("cityName", "");
 
             if (Math.abs(latitude) > 88.0) {  // 靠近南北极就是位置异常
@@ -174,12 +174,11 @@ public abstract class WidgetBase extends AppWidgetProvider {
 
                 Warning warning = new Gson().fromJson(warningData, Warning.class);
                 if (warning != null && Objects.equals(warning.code, "200") &&
-                        warning.warning != null && warning.warning.size() > 0) {
+                        warning.warning != null && !warning.warning.isEmpty()) {
                     notify(context, warning.warning);
                 }
             } catch (Exception e) {
                 showTips(context, "发生异常 " + e);
-                e.printStackTrace();
             }
         }).start();
     }

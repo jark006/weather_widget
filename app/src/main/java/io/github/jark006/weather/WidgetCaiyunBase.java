@@ -1,6 +1,11 @@
 package io.github.jark006.weather;
 
+import static android.content.Context.NOTIFICATION_SERVICE;
+
 import android.annotation.SuppressLint;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
@@ -9,12 +14,16 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.util.Log;
+import android.widget.RemoteViews;
 
 import androidx.annotation.NonNull;
 
 import com.google.gson.Gson;
 
+import java.util.zip.CRC32;
+
 import io.github.jark006.weather.caiyun.Caiyun;
+import io.github.jark006.weather.caiyun.Caiyun.Result.Alert;
 import io.github.jark006.weather.utils.NetworkUtils;
 import io.github.jark006.weather.utils.Utils;
 
@@ -22,7 +31,7 @@ public abstract class WidgetCaiyunBase extends AppWidgetProvider {
 
     final static String TAG = "JARK_WidgetCaiyun";
     final static String REQUEST_MANUAL = "jark_weather_REQUEST_MANUAL_CAIYUN";
-    final static String APIKEY = "XXX"; // 彩云 APIKEY
+    final static String APIKEY = "96Ly7wgKGq6FhllM"; // 彩云 APIKEY
 
     @Override
     public void onEnabled(Context context) {
@@ -59,7 +68,7 @@ public abstract class WidgetCaiyunBase extends AppWidgetProvider {
             double latitude = sf.getFloat("latitude", 90); // 北极
 
             String districtName = sf.getString("districtName", "");
-            if (districtName.length() == 0)
+            if (districtName.isEmpty())
                 districtName = sf.getString("cityName", "");
 
             if (Math.abs(latitude) > 88.0) {  // 靠近南北极就是位置异常
@@ -80,11 +89,54 @@ public abstract class WidgetCaiyunBase extends AppWidgetProvider {
                     throw new Exception("status: " + caiyun.status);
                 }
                 updateAppWidget(context, caiyun, districtName);
+
+                if (caiyun != null && caiyun.result != null && caiyun.result.alert != null)
+                    notify(context, caiyun.result.alert);
+
             } catch (Exception e) {
                 showTips(context, "发生异常 " + e);
-                e.printStackTrace();
             }
         }).start();
+    }
+
+    public void notify(Context context, @NonNull Alert alert) {
+        if (!alert.status.equals("ok") || alert.content == null)
+            return;
+
+        for (Alert.Content info : alert.content) {
+            if (Utils.hasNotify.contains(info.alertId))
+                continue;
+
+            Utils.hasNotify.add(info.alertId);
+
+            int warnLevel = Integer.parseInt(info.code) % 100; // 0(白色预警) ~ 4(红色预警)
+            int importantLevel = warnLevel + 1; // 1(不重要的通知) ~ 5(特别重要的通知)
+
+            String channelId = Utils.warnLevelStr[warnLevel];
+
+            RemoteViews cusRemoveExpandView = new RemoteViews(context.getPackageName(), R.layout.layout_notify_large);
+            cusRemoveExpandView.setTextViewText(R.id.title, info.title);
+            cusRemoveExpandView.setTextViewText(R.id.content, info.description);
+            cusRemoveExpandView.setImageViewResource(R.id.icon, Utils.warnIconIndex[warnLevel]);
+
+            Notification notification = new Notification.Builder(context, channelId)
+                    .setWhen(System.currentTimeMillis())
+                    .setSmallIcon(Utils.warnIconIndex[warnLevel])
+                    .setContentTitle(info.location + info.status)
+                    .setContentText(info.title)
+                    .setStyle(new Notification.DecoratedCustomViewStyle())
+                    .setCustomBigContentView(cusRemoveExpandView)
+                    .build();
+
+            NotificationManager notificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
+            NotificationChannel channel = new NotificationChannel(channelId, channelId, Utils.IMPORTANT_INT[importantLevel]);
+            channel.setDescription(Utils.warnLevelDescription[warnLevel]);
+            notificationManager.createNotificationChannel(channel);
+
+            CRC32 crc32 = new CRC32();
+            crc32.update(info.alertId.getBytes());
+            notificationManager.notify((int) crc32.getValue(), notification);
+        }
     }
 
     /**
