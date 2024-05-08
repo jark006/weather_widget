@@ -6,19 +6,15 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 
-import io.github.jark006.weather.BuildConfig;
-import io.github.jark006.weather.R;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.HashSet;
+
+import io.github.jark006.weather.BuildConfig;
+import io.github.jark006.weather.R;
 
 public class Utils {
-
-    public final static HashSet<String> hasNotify = new HashSet<>();
-
-    public static final double defLongitude = 113.381917;//默认在广州大学城
+    public static final double defLongitude = 113.381917;//默认在广州
     public static final double defLatitude = 23.039316;
 
     public final static String[] warnLevelStr = {"白色预警", "蓝色预警", "黄色预警", "橙色预警", "红色预警"};
@@ -47,16 +43,16 @@ public class Utils {
     };
 
 
-    public static void saveLog(Context context, String path, String text) {
+    public static void saveLog(Context context, String text) {
+        final String logFileName = "log.txt";
         try {
             String str = "[" + DateUtils.getLogTime() + "] " + text + "\n";
-            File logFile = context.getFileStreamPath(path);// /data/data/包名/files
+            File logFile = context.getFileStreamPath(logFileName);// /data/data/包名/files
             int logFileMode = (logFile.length() > 100 * 1024) ? Context.MODE_PRIVATE : Context.MODE_APPEND;
-            FileOutputStream fileOut = context.openFileOutput(path, logFileMode);
+            FileOutputStream fileOut = context.openFileOutput(logFileName, logFileMode);
             fileOut.write(str.getBytes());
             fileOut.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException ignore) {
         }
     }
     public static String getMetaValue(Context context, String metaName) {

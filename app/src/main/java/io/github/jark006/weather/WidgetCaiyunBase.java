@@ -20,6 +20,11 @@ import androidx.annotation.NonNull;
 
 import com.google.gson.Gson;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.HashSet;
 import java.util.zip.CRC32;
 
 import io.github.jark006.weather.caiyun.Caiyun;
@@ -99,15 +104,32 @@ public abstract class WidgetCaiyunBase extends AppWidgetProvider {
         }).start();
     }
 
+    @SuppressWarnings("unchecked")
     public void notify(Context context, @NonNull Alert alert) {
-        if (!alert.status.equals("ok") || alert.content == null)
+        if (!alert.status.equals("ok") || alert.content == null || alert.content.isEmpty())
             return;
+        final String setFileName = "hasNotifyCaiyun.set";
+        HashSet<String> hasNotify = null;
+        try {
+            FileInputStream fis = context.openFileInput(setFileName);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            hasNotify = (HashSet<String>) ois.readObject();
+            ois.close();
+            fis.close();
+        } catch (Exception e) {
+            Utils.saveLog(context, "读取 "+setFileName+" 失败\n"+e);
+        }
 
+        if (hasNotify == null || hasNotify.size() > 100)
+            hasNotify = new HashSet<>();
+
+        boolean addItem = false;
         for (Alert.Content info : alert.content) {
-            if (Utils.hasNotify.contains(info.alertId))
+            if (hasNotify.contains(info.alertId))
                 continue;
 
-            Utils.hasNotify.add(info.alertId);
+            hasNotify.add(info.alertId);
+            addItem = true;
 
             int warnLevel = Integer.parseInt(info.code) % 100; // 0(白色预警) ~ 4(红色预警)
             int importantLevel = warnLevel + 1; // 1(不重要的通知) ~ 5(特别重要的通知)
@@ -136,6 +158,17 @@ public abstract class WidgetCaiyunBase extends AppWidgetProvider {
             CRC32 crc32 = new CRC32();
             crc32.update(info.alertId.getBytes());
             notificationManager.notify((int) crc32.getValue(), notification);
+        }
+        if (addItem) {
+            try {
+                FileOutputStream fos = context.openFileOutput(setFileName, Context.MODE_PRIVATE);
+                ObjectOutputStream oos = new ObjectOutputStream(fos);
+                oos.writeObject(hasNotify);
+                oos.close();
+                fos.close();
+            } catch (Exception e) {
+                Utils.saveLog(context, "保存 "+setFileName+" 失败\n"+e);
+            }
         }
     }
 

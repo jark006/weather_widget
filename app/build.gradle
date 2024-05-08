@@ -11,8 +11,8 @@ android {
         applicationId "io.github.jark006.weather"
         minSdk 26
         targetSdk 34
-        versionCode 33
-        versionName '3.3'
+        versionCode 34
+        versionName '3.4'
         resValue "string", "appVer", "v${versionName}"
     }
 

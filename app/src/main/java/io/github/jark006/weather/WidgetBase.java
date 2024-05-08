@@ -20,6 +20,11 @@ import androidx.annotation.NonNull;
 
 import com.google.gson.Gson;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -183,14 +188,32 @@ public abstract class WidgetBase extends AppWidgetProvider {
         }).start();
     }
 
+    @SuppressWarnings("unchecked")
     public void notify(Context context, @NonNull List<Warning.WarningItem> warnInfo) {
+        final String setFileName = "hasNotifyHeFeng.set";
+        HashSet<String> hasNotify = null;
+        try {
+            FileInputStream fis = context.openFileInput(setFileName);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            hasNotify = (HashSet<String>) ois.readObject();
+            ois.close();
+            fis.close();
+        } catch (Exception e) {
+            Utils.saveLog(context, "读取 "+setFileName+" 失败\n"+e);
+        }
+
+        if (hasNotify == null || hasNotify.size() > 100)
+            hasNotify = new HashSet<>();
+
+        boolean addItem = false;
         for (Warning.WarningItem info : warnInfo) {
             if (info.status.equals("Cancel"))
                 continue;
-            if (Utils.hasNotify.contains(info.id))
+            if (hasNotify.contains(info.id))
                 continue;
 
-            Utils.hasNotify.add(info.id);
+            hasNotify.add(info.id);
+            addItem=true;
 
             var warnLevel = warnColorMap.getOrDefault(info.severityColor, 0); // 0(白色预警) ~ 4(红色预警)
             if (warnLevel == null)
@@ -222,6 +245,17 @@ public abstract class WidgetBase extends AppWidgetProvider {
             CRC32 crc32 = new CRC32();
             crc32.update(info.id.getBytes());
             notificationManager.notify((int) crc32.getValue(), notification);
+        }
+        if (addItem) {
+            try {
+                FileOutputStream fos = context.openFileOutput(setFileName, Context.MODE_PRIVATE);
+                ObjectOutputStream oos = new ObjectOutputStream(fos);
+                oos.writeObject(hasNotify);
+                oos.close();
+                fos.close();
+            } catch (Exception e) {
+                Utils.saveLog(context, "保存 "+setFileName+" 失败\n"+e);
+            }
         }
     }
 
