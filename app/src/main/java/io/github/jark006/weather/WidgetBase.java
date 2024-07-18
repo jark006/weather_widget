@@ -4,7 +4,6 @@ import static android.content.Context.NOTIFICATION_SERVICE;
 
 import android.annotation.SuppressLint;
 import android.app.Notification;
-import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
@@ -219,8 +218,6 @@ public abstract class WidgetBase extends AppWidgetProvider {
             if (warnLevel == null)
                 warnLevel = 1;
 
-            int importantLevel = warnLevel + 1; // 1(不重要的通知) ~ 5(特别重要的通知)
-
             String channelId = Utils.warnLevelStr[warnLevel];
 
             RemoteViews cusRemoveExpandView = new RemoteViews(context.getPackageName(), R.layout.layout_notify_large);
@@ -235,13 +232,10 @@ public abstract class WidgetBase extends AppWidgetProvider {
                     .setContentText(info.text)
                     .setStyle(new Notification.DecoratedCustomViewStyle())
                     .setCustomBigContentView(cusRemoveExpandView)
+                    .setOnlyAlertOnce(true) // 无效
                     .build();
 
             NotificationManager notificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
-            NotificationChannel channel = new NotificationChannel(channelId, channelId, Utils.IMPORTANT_INT[importantLevel]);
-            channel.setDescription(Utils.warnLevelDescription[warnLevel]);
-            notificationManager.createNotificationChannel(channel);
-
             CRC32 crc32 = new CRC32();
             crc32.update(info.id.getBytes());
             notificationManager.notify((int) crc32.getValue(), notification);

@@ -7,8 +7,12 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 import io.github.jark006.weather.BuildConfig;
 import io.github.jark006.weather.R;
@@ -55,9 +59,10 @@ public class Utils {
         } catch (IOException ignore) {
         }
     }
+
     public static String getMetaValue(Context context, String metaName) {
         try {
-            ApplicationInfo info=context.getPackageManager().getApplicationInfo(
+            ApplicationInfo info = context.getPackageManager().getApplicationInfo(
                     BuildConfig.APPLICATION_ID, PackageManager.GET_META_DATA);
             return info.metaData.getString(metaName);
         } catch (Exception e) {
@@ -68,6 +73,34 @@ public class Utils {
     public static void textDialog(Context context, int titleResID, int contentResID) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle(titleResID).setMessage(contentResID).create().show();
+    }
+
+    public static Object readObj(Context context, String path) {
+        try {
+            FileInputStream fis = context.openFileInput(path);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            var obj = ois.readObject();
+            ois.close();
+            fis.close();
+            return obj;
+        } catch (FileNotFoundException ignore) {
+            saveLog(context, "读取 [" + path + "] 失败，文件不存在。\n");
+        } catch (Exception e) {
+            saveLog(context, "读取 [" + path + "] 失败\n" + e);
+        }
+        return null;
+    }
+
+    public static void saveObj(Context context, String path, Object obj) {
+        try {
+            FileOutputStream fos = context.openFileOutput(path, Context.MODE_PRIVATE);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(obj);
+            oos.close();
+            fos.close();
+        } catch (Exception e) {
+            saveLog(context, "保存 [" + path + "] 失败\n" + e);
+        }
     }
 
 }

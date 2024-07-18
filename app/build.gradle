@@ -5,14 +5,23 @@ static def releaseTime() {
     return new Date().format("yyyy-MM-dd", TimeZone.getTimeZone("GMT+8"))
 }
 android {
+    signingConfigs {
+        key {
+            storeFile file('D:\\project\\github\\jarkstudio_jark147258369_jark006Key_jark147258369.jks')
+            storePassword 'jark147258369'
+            keyAlias 'jark006Key'
+            keyPassword 'jark147258369'
+        }
+    }
+
     compileSdk 34
 
     defaultConfig {
         applicationId "io.github.jark006.weather"
         minSdk 26
         targetSdk 34
-        versionCode 34
-        versionName '3.4'
+        versionCode 35
+        versionName '3.5'
         resValue "string", "appVer", "v${versionName}"
     }
 
@@ -44,7 +53,7 @@ android {
 
 dependencies {
     implementation 'com.google.android.material:material:1.12.0'
-    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'com.amap.api:location:6.4.0'
     implementation 'com.google.code.gson:gson:2.10.1'

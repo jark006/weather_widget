@@ -42,7 +42,7 @@ import io.github.jark006.weather.utils.Utils;
 
 public class MainActivity extends AppCompatActivity {
     final String tips = "小部件将会一直使用以上地址，若平时移动范围小于10公里，则不需要频繁更新。";
-    TextView mainText;
+    TextView mainText, latestWarnText;
     Button btUpdateLocation;
 
     @Override
@@ -51,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         mainText = findViewById(R.id.mainText);
+        latestWarnText = findViewById(R.id.latestWarnText);
         btUpdateLocation = findViewById(R.id.btUpdateLocation);
 
         findViewById(R.id.btJumpToGithub).setOnClickListener(v -> startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/jark006/weather_widget"))));
@@ -60,6 +61,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
+
+        String str = (String)Utils.readObj(getApplicationContext(), "latestWarnText");
+        if(str != null && str.length() >2)
+            latestWarnText.setText(str);
 
         SharedPreferences sf = this.getSharedPreferences("locationInfo", Context.MODE_PRIVATE);
         long updateTime = sf.getLong("updateTime", 0);
@@ -194,7 +199,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             mLocationClient = new AMapLocationClient(context);
         } catch (Exception e) {
-            e.printStackTrace();
+            Utils.saveLog(context, "定位错误"+e);
             return;
         }
 

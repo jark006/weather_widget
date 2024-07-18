@@ -4,7 +4,6 @@ import static android.content.Context.NOTIFICATION_SERVICE;
 
 import android.annotation.SuppressLint;
 import android.app.Notification;
-import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
@@ -13,17 +12,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
-import android.util.Log;
 import android.widget.RemoteViews;
 
 import androidx.annotation.NonNull;
 
 import com.google.gson.Gson;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.HashSet;
 import java.util.zip.CRC32;
 
@@ -34,14 +28,12 @@ import io.github.jark006.weather.utils.Utils;
 
 public abstract class WidgetCaiyunBase extends AppWidgetProvider {
 
-    final static String TAG = "JARK_WidgetCaiyun";
     final static String REQUEST_MANUAL = "jark_weather_REQUEST_MANUAL_CAIYUN";
     final static String APIKEY = "96Ly7wgKGq6FhllM"; // 彩云 APIKEY
 
     @Override
     public void onEnabled(Context context) {
         super.onEnabled(context);
-        Log.d(TAG, "onEnabled: 创建彩云小部件");
     }
 
     @Override
@@ -109,20 +101,12 @@ public abstract class WidgetCaiyunBase extends AppWidgetProvider {
         if (!alert.status.equals("ok") || alert.content == null || alert.content.isEmpty())
             return;
         final String setFileName = "hasNotifyCaiyun.set";
-        HashSet<String> hasNotify = null;
-        try {
-            FileInputStream fis = context.openFileInput(setFileName);
-            ObjectInputStream ois = new ObjectInputStream(fis);
-            hasNotify = (HashSet<String>) ois.readObject();
-            ois.close();
-            fis.close();
-        } catch (Exception e) {
-            Utils.saveLog(context, "读取 "+setFileName+" 失败\n"+e);
-        }
+        HashSet<String> hasNotify = (HashSet<String>)Utils.readObj(context, setFileName);
 
-        if (hasNotify == null || hasNotify.size() > 100)
+        if (hasNotify == null || hasNotify.size() > 20)
             hasNotify = new HashSet<>();
 
+        StringBuilder str = new StringBuilder();
         boolean addItem = false;
         for (Alert.Content info : alert.content) {
             if (hasNotify.contains(info.alertId))
@@ -132,8 +116,6 @@ public abstract class WidgetCaiyunBase extends AppWidgetProvider {
             addItem = true;
 
             int warnLevel = Integer.parseInt(info.code) % 100; // 0(白色预警) ~ 4(红色预警)
-            int importantLevel = warnLevel + 1; // 1(不重要的通知) ~ 5(特别重要的通知)
-
             String channelId = Utils.warnLevelStr[warnLevel];
 
             RemoteViews cusRemoveExpandView = new RemoteViews(context.getPackageName(), R.layout.layout_notify_large);
@@ -151,24 +133,15 @@ public abstract class WidgetCaiyunBase extends AppWidgetProvider {
                     .build();
 
             NotificationManager notificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
-            NotificationChannel channel = new NotificationChannel(channelId, channelId, Utils.IMPORTANT_INT[importantLevel]);
-            channel.setDescription(Utils.warnLevelDescription[warnLevel]);
-            notificationManager.createNotificationChannel(channel);
-
             CRC32 crc32 = new CRC32();
             crc32.update(info.alertId.getBytes());
             notificationManager.notify((int) crc32.getValue(), notification);
+
+            str.append(info.title).append("\n").append(info.description).append("\n\n");
         }
         if (addItem) {
-            try {
-                FileOutputStream fos = context.openFileOutput(setFileName, Context.MODE_PRIVATE);
-                ObjectOutputStream oos = new ObjectOutputStream(fos);
-                oos.writeObject(hasNotify);
-                oos.close();
-                fos.close();
-            } catch (Exception e) {
-                Utils.saveLog(context, "保存 "+setFileName+" 失败\n"+e);
-            }
+            Utils.saveObj(context, setFileName, hasNotify);
+            Utils.saveObj(context, "latestWarnText", str.toString());
         }
     }
 
