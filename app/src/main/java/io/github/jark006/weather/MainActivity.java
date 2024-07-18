@@ -15,11 +15,13 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.provider.Settings;
+import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
@@ -42,29 +44,34 @@ import io.github.jark006.weather.utils.Utils;
 
 public class MainActivity extends AppCompatActivity {
     final String tips = "小部件将会一直使用以上地址，若平时移动范围小于10公里，则不需要频繁更新。";
-    TextView mainText, latestWarnText;
+    TextView locationInfo, latestWarnText;
     Button btUpdateLocation;
+    CardView warningCard;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mainText = findViewById(R.id.mainText);
+        locationInfo = findViewById(R.id.locationInfo);
         latestWarnText = findViewById(R.id.latestWarnText);
         btUpdateLocation = findViewById(R.id.btUpdateLocation);
+        warningCard = findViewById(R.id.warnCard);
 
         findViewById(R.id.btJumpToGithub).setOnClickListener(v -> startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/jark006/weather_widget"))));
-        findViewById(R.id.privacy).setOnClickListener(v -> Utils.textDialog(this, R.string.privacy_title, R.string.privacy_content));
     }
 
     @Override
     public void onResume() {
         super.onResume();
 
-        String str = (String)Utils.readObj(getApplicationContext(), "latestWarnText");
-        if(str != null && str.length() >2)
-            latestWarnText.setText(str);
+        String warnText = (String) Utils.readObj(getApplicationContext(), "latestWarnText");
+        if (warnText != null && warnText.length() > 2) {
+            warningCard.setVisibility(View.VISIBLE);
+            latestWarnText.setText(warnText.trim());
+        } else {
+            warningCard.setVisibility(View.GONE);
+        }
 
         SharedPreferences sf = this.getSharedPreferences("locationInfo", Context.MODE_PRIVATE);
         long updateTime = sf.getLong("updateTime", 0);
@@ -72,16 +79,13 @@ public class MainActivity extends AppCompatActivity {
             double longitude = sf.getFloat("longitude", 0);
             double latitude = sf.getFloat("latitude", 0);
             String address = sf.getString("address", "未知");
-            String cityName = sf.getString("cityName", "未知");
-            String districtName = sf.getString("districtName", "未知");
-            String adCode = sf.getString("adCode", "未知");
 
-            mainText.setText(String.format(Locale.CHINA,
-                    "更新时间: %s\n经度: %.5f\n纬度: %.5f\n区域：%s %s 编码: %s\n\n%s\n\n%s",
-                    DateUtils.getFormatDate(updateTime, DateUtils.yyyyMMddHHmm)
-                    , longitude, latitude, cityName, districtName, adCode, address, tips));
+            locationInfo.setText(String.format(Locale.CHINA,
+                    "更新时间: %s\n经度: %.5f 纬度: %.5f\n%s\n\n%s",
+                    DateUtils.getFormatDate(updateTime, DateUtils.yyyyMMddHHmm),
+                    longitude, latitude, address, tips));
         } else {
-            mainText.setText("暂无位置信息，请更新");
+            locationInfo.setText("暂无位置信息，请更新");
         }
         btUpdateLocation.setText("更新当前位置");
         btUpdateLocation.setOnClickListener(v -> getLocationAmap(getApplicationContext()));
@@ -95,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
 
             if (!status) {
                 String errorTips = msg.getData().getString("errorTips");
-                mainText.setText(errorTips);
+                locationInfo.setText(errorTips);
                 return;
             }
 
@@ -107,10 +111,10 @@ public class MainActivity extends AppCompatActivity {
             String adCode = msg.getData().getString("adCode");
             long updateTime = msg.getData().getLong("updateTime");
 
-            mainText.setText(String.format(Locale.CHINA,
-                    "更新时间: %s\n经度: %.5f\n纬度: %.5f\n区域：%s %s 编码: %s\n\n%s\n\n%s",
+            locationInfo.setText(String.format(Locale.CHINA,
+                    "更新时间: %s\n经度: %.5f 纬度: %.5f\n%s\n\n%s",
                     DateUtils.getFormatDate(updateTime, DateUtils.yyyyMMddHHmm),
-                    longitude, latitude, cityName, districtName, adCode, address, tips));
+                    longitude, latitude, address, tips));
 
             SharedPreferences.Editor editor = getBaseContext().getSharedPreferences("locationInfo", Context.MODE_PRIVATE).edit();
             editor.putFloat("longitude", (float) longitude);
@@ -137,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
 
             if (isNoPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ||
                     isNoPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)) {
-                mainText.setText(R.string.location_tips);
+                locationInfo.setText(R.string.location_tips);
                 btUpdateLocation.setText(R.string.setting_permission);
                 btUpdateLocation.setOnClickListener(v -> {
                     Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
@@ -155,7 +159,7 @@ public class MainActivity extends AppCompatActivity {
                     new String[]{Manifest.permission.POST_NOTIFICATIONS,}, 1);
 
             if (isNoPermission(this, Manifest.permission.POST_NOTIFICATIONS)) {
-                mainText.setText(R.string.notification_tips);
+                locationInfo.setText(R.string.notification_tips);
                 btUpdateLocation.setText(R.string.setting_permission);
                 btUpdateLocation.setOnClickListener(v -> {
                     Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
@@ -199,7 +203,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             mLocationClient = new AMapLocationClient(context);
         } catch (Exception e) {
-            Utils.saveLog(context, "定位错误"+e);
+            Utils.saveLog(context, "定位错误" + e);
             return;
         }
 

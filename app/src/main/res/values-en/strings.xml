@@ -12,11 +12,11 @@
     <string name="tips">If there is no data, remove the widget and add a new one</string>
     <string name="setting_permission">Grant permission</string>
     <string name="icon_description">Alert level Icon</string>
-    <string name="update_tips">This APP only has a launcher widget, click the widget to update immediately, usually automatically update once an hour.\nCoolapk&amp;Github @JARK006</string>
+    <string name="update_tips">This APP only has a launcher widget, click the widget to update immediately, usually automatically update once an hour. Github@JARK006</string>
     <string name="location_tips">Please go to settings to enable location permission</string>
     <string name="app_data">Location SDK provided by Amap.com, weather data from \"Qweather.com\" and "caiyunapp.com"</string>
-    <string name="open_sources">GitHub Source</string>
     <string name="notification_tips">Please go to settings to enable notification permission</string>
     <string name="widget_caiyun1_description">CaiyunBig</string>
     <string name="widget_caiyun2_description">CaiyunSmall</string>
+    <string name="warnTitle">LatestWarning</string>
 </resources>
