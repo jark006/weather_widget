@@ -19,6 +19,8 @@ import androidx.annotation.NonNull;
 import com.google.gson.Gson;
 
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.zip.CRC32;
 
 import io.github.jark006.weather.caiyun.Caiyun;
@@ -101,12 +103,11 @@ public abstract class WidgetCaiyunBase extends AppWidgetProvider {
         if (!alert.status.equals("ok") || alert.content == null || alert.content.isEmpty())
             return;
         final String setFileName = "hasNotifyCaiyun.set";
-        HashSet<String> hasNotify = (HashSet<String>)Utils.readObj(context, setFileName);
+        HashSet<String> hasNotify = (HashSet<String>) Utils.readObj(context, setFileName);
 
         if (hasNotify == null || hasNotify.size() > 20)
             hasNotify = new HashSet<>();
 
-        StringBuilder str = new StringBuilder();
         boolean addItem = false;
         for (Alert.Content info : alert.content) {
             if (hasNotify.contains(info.alertId))
@@ -136,12 +137,17 @@ public abstract class WidgetCaiyunBase extends AppWidgetProvider {
             CRC32 crc32 = new CRC32();
             crc32.update(info.alertId.getBytes());
             notificationManager.notify((int) crc32.getValue(), notification);
-
-            str.append(info.title).append("\n").append(info.description).append("\n\n");
         }
         if (addItem) {
             Utils.saveObj(context, setFileName, hasNotify);
-            Utils.saveObj(context, "latestWarnText", str.toString());
+
+            var alertList = (List<Alert.Content>) Utils.readObj(context, "alertList");
+            if (alertList == null)
+                alertList = new LinkedList<>();
+            alertList.addAll(alert.content);
+            while (alertList.size() > 20)
+                alertList.remove(0);
+            Utils.saveObj(context, "alertList", alertList);
         }
     }
 

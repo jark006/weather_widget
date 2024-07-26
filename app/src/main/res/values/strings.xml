@@ -69,6 +69,6 @@ https://developer.amap.com/pages/privacy/\n\n
     <string name="widget_caiyun1_description">彩云大型</string>
     <string name="hour_temp" translatable="false">08H[ 24 25 26 ]12H</string>
     <string name="widget_caiyun2_description">彩云小型</string>
-    <string name="warnTitle">最近预警</string>
+    <string name="alertTitle">近期预警</string>
 
 </resources>

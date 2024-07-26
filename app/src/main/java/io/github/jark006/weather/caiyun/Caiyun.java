@@ -1,5 +1,6 @@
 package io.github.jark006.weather.caiyun;
 
+import java.io.Serializable;
 import java.util.List;
 
 public class Caiyun {
@@ -24,7 +25,7 @@ public class Caiyun {
             public String status;
             public List<Content> content;
 
-            static public class Content {
+            static public class Content implements Serializable {
                 public String province;
                 public String status;
                 public String code;

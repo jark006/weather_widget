@@ -17,13 +17,22 @@ import android.os.Message;
 import android.provider.Settings;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+
+import android.view.LayoutInflater;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import com.amap.api.location.AMapLocationClient;
 import com.amap.api.location.AMapLocationClientOption;
@@ -33,6 +42,7 @@ import java.util.Locale;
 
 import io.github.jark006.weather.utils.DateUtils;
 import io.github.jark006.weather.utils.Utils;
+import io.github.jark006.weather.caiyun.Caiyun.Result.Alert;
 
 //debug key sha1
 //C:\Program Files\Android\Android Studio\jre\bin> ./keytool -list -v -keystore "C:\Users\JARK006\.android\debug.keystore"
@@ -43,10 +53,11 @@ import io.github.jark006.weather.utils.Utils;
 //获取两个SHA1后到高德平台设置获取key
 
 public class MainActivity extends AppCompatActivity {
-    final String tips = "小部件将会一直使用以上地址，若平时移动范围小于10公里，则不需要频繁更新。";
-    TextView locationInfo, latestWarnText;
+    TextView locationInfo;
     Button btUpdateLocation;
-    CardView warningCard;
+    LinearLayout recentAlert;
+    ListView alertList;
+    CustomAdapter customAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,9 +65,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         locationInfo = findViewById(R.id.locationInfo);
-        latestWarnText = findViewById(R.id.latestWarnText);
         btUpdateLocation = findViewById(R.id.btUpdateLocation);
-        warningCard = findViewById(R.id.warnCard);
+        recentAlert = findViewById(R.id.recentAlert);
+        alertList = findViewById(R.id.alertList);
+
+        customAdapter = new CustomAdapter(this);
+        alertList.setAdapter(customAdapter);
 
         findViewById(R.id.btJumpToGithub).setOnClickListener(v -> startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/jark006/weather_widget"))));
     }
@@ -65,12 +79,13 @@ public class MainActivity extends AppCompatActivity {
     public void onResume() {
         super.onResume();
 
-        String warnText = (String) Utils.readObj(getApplicationContext(), "latestWarnText");
-        if (warnText != null && warnText.length() > 2) {
-            warningCard.setVisibility(View.VISIBLE);
-            latestWarnText.setText(warnText.trim());
+        @SuppressWarnings("unchecked")
+        var alertList = (List<Alert.Content>) Utils.readObj(getApplicationContext(), "alertList");
+        if (alertList == null || alertList.isEmpty()) {
+            recentAlert.setVisibility(View.GONE);
         } else {
-            warningCard.setVisibility(View.GONE);
+            recentAlert.setVisibility(View.VISIBLE);
+            customAdapter.setList(alertList);
         }
 
         SharedPreferences sf = this.getSharedPreferences("locationInfo", Context.MODE_PRIVATE);
@@ -81,9 +96,9 @@ public class MainActivity extends AppCompatActivity {
             String address = sf.getString("address", "未知");
 
             locationInfo.setText(String.format(Locale.CHINA,
-                    "更新时间: %s\n经度: %.5f 纬度: %.5f\n%s\n\n%s",
+                    "更新时间: %s\n经度: %.5f 纬度: %.5f\n%s",
                     DateUtils.getFormatDate(updateTime, DateUtils.yyyyMMddHHmm),
-                    longitude, latitude, address, tips));
+                    longitude, latitude, address));
         } else {
             locationInfo.setText("暂无位置信息，请更新");
         }
@@ -112,9 +127,9 @@ public class MainActivity extends AppCompatActivity {
             long updateTime = msg.getData().getLong("updateTime");
 
             locationInfo.setText(String.format(Locale.CHINA,
-                    "更新时间: %s\n经度: %.5f 纬度: %.5f\n%s\n\n%s",
+                    "更新时间: %s\n经度: %.5f 纬度: %.5f\n%s",
                     DateUtils.getFormatDate(updateTime, DateUtils.yyyyMMddHHmm),
-                    longitude, latitude, address, tips));
+                    longitude, latitude, address));
 
             SharedPreferences.Editor editor = getBaseContext().getSharedPreferences("locationInfo", Context.MODE_PRIVATE).edit();
             editor.putFloat("longitude", (float) longitude);
@@ -223,6 +238,71 @@ public class MainActivity extends AppCompatActivity {
             NotificationChannel channel = new NotificationChannel(channelId, channelId, Utils.IMPORTANT_INT[warnLevel + 1]);
             channel.setDescription(Utils.warnLevelDescription[warnLevel]);
             notificationManager.createNotificationChannel(channel);
+        }
+    }
+
+    public static class CustomAdapter extends BaseAdapter {
+        private final Context context;
+        private List<Alert.Content> items;
+
+        public CustomAdapter(Context context) {
+            this.context = context;
+            this.items = new ArrayList<>();
+        }
+
+        public void setList(List<Alert.Content> items) {
+            this.items = items;
+            this.notifyDataSetChanged();
+        }
+
+        @Override
+        public int getCount() {
+            return items.size();
+        }
+
+        @Override
+        public Object getItem(int position) {
+            return items.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            if (convertView == null) {
+                convertView = LayoutInflater.from(context).inflate(R.layout.alert_item, parent, false);
+            }
+
+            var item = items.get(items.size() - 1 - position); //逆序
+
+            String titleStr;
+            long deltaSec = System.currentTimeMillis() / 1000 - item.pubtimestamp;
+            if (deltaSec < 60) {
+                titleStr = "1分钟内";
+            } else if (deltaSec < 3600) {
+                titleStr = (deltaSec / 60) + "分钟前";
+            } else if (deltaSec < 10800) {
+                titleStr = (deltaSec / 3600) + "小时" + ((deltaSec % 3600) / 60) + "分钟前";
+            } else if (deltaSec < 86400) {
+                titleStr = (deltaSec / 3600) + "小时前";
+            } else if (deltaSec < 86400 * 3) {
+                titleStr = (deltaSec / 86400) + "天" + ((deltaSec % 86400) / 3600) + "小时前";
+            } else {
+                titleStr = (deltaSec / 86400) + "天前";
+            }
+            titleStr += " " + item.title;
+
+            ((TextView) convertView.findViewById(R.id.title)).setText(titleStr);
+            ((TextView) convertView.findViewById(R.id.content)).setText(item.description);
+            ((TextView) convertView.findViewById(R.id.pub_id)).setText(item.alertId);
+
+            int warnLevel = item.code == null ? -1 : Integer.parseInt(item.code) % 100; // 0(白色预警) ~ 4(红色预警)
+            ((ImageView) convertView.findViewById(R.id.icon)).setImageResource(Utils.warnIconIndex[warnLevel < 0 ? 2 : warnLevel]);
+
+            return convertView;
         }
     }
 }
