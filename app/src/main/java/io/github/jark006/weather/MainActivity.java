@@ -32,6 +32,8 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 
 import com.amap.api.location.AMapLocationClient;
@@ -56,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
     TextView locationInfo;
     Button btUpdateLocation;
     LinearLayout recentAlert;
-    ListView alertList;
+    ListView alertListVew;
     CustomAdapter customAdapter;
 
     @Override
@@ -67,10 +69,10 @@ public class MainActivity extends AppCompatActivity {
         locationInfo = findViewById(R.id.locationInfo);
         btUpdateLocation = findViewById(R.id.btUpdateLocation);
         recentAlert = findViewById(R.id.recentAlert);
-        alertList = findViewById(R.id.alertList);
+        alertListVew = findViewById(R.id.alertList);
 
         customAdapter = new CustomAdapter(this);
-        alertList.setAdapter(customAdapter);
+        alertListVew.setAdapter(customAdapter);
 
         findViewById(R.id.btJumpToGithub).setOnClickListener(v -> startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/jark006/weather_widget"))));
     }
@@ -80,12 +82,13 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
 
         @SuppressWarnings("unchecked")
-        var alertList = (List<Alert.Content>) Utils.readObj(getApplicationContext(), "alertList");
-        if (alertList == null || alertList.isEmpty()) {
+        var alertMap = (HashMap<String, Alert.Content>) Utils.readObj(getApplicationContext(), "alertMap");
+
+        if (alertMap == null || alertMap.isEmpty()) {
             recentAlert.setVisibility(View.GONE);
         } else {
             recentAlert.setVisibility(View.VISIBLE);
-            customAdapter.setList(alertList);
+            customAdapter.setList(new ArrayList<>(alertMap.values()));
         }
 
         SharedPreferences sf = this.getSharedPreferences("locationInfo", Context.MODE_PRIVATE);
@@ -251,6 +254,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         public void setList(List<Alert.Content> items) {
+            items.sort(Comparator.comparingLong(o -> o.pubtimestamp));
             this.items = items;
             this.notifyDataSetChanged();
         }
@@ -281,15 +285,11 @@ public class MainActivity extends AppCompatActivity {
             String titleStr;
             long deltaSec = System.currentTimeMillis() / 1000 - item.pubtimestamp;
             if (deltaSec < 60) {
-                titleStr = "1分钟内";
+                titleStr = "刚刚";
             } else if (deltaSec < 3600) {
                 titleStr = (deltaSec / 60) + "分钟前";
-            } else if (deltaSec < 10800) {
-                titleStr = (deltaSec / 3600) + "小时" + ((deltaSec % 3600) / 60) + "分钟前";
             } else if (deltaSec < 86400) {
                 titleStr = (deltaSec / 3600) + "小时前";
-            } else if (deltaSec < 86400 * 3) {
-                titleStr = (deltaSec / 86400) + "天" + ((deltaSec % 86400) / 3600) + "小时前";
             } else {
                 titleStr = (deltaSec / 86400) + "天前";
             }
@@ -297,7 +297,6 @@ public class MainActivity extends AppCompatActivity {
 
             ((TextView) convertView.findViewById(R.id.title)).setText(titleStr);
             ((TextView) convertView.findViewById(R.id.content)).setText(item.description);
-            ((TextView) convertView.findViewById(R.id.pub_id)).setText(item.alertId);
 
             int warnLevel = item.code == null ? -1 : Integer.parseInt(item.code) % 100; // 0(白色预警) ~ 4(红色预警)
             ((ImageView) convertView.findViewById(R.id.icon)).setImageResource(Utils.warnIconIndex[warnLevel < 0 ? 2 : warnLevel]);

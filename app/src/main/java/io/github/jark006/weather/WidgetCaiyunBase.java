@@ -18,10 +18,7 @@ import androidx.annotation.NonNull;
 
 import com.google.gson.Gson;
 
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.zip.CRC32;
+import java.util.HashMap;
 
 import io.github.jark006.weather.caiyun.Caiyun;
 import io.github.jark006.weather.caiyun.Caiyun.Result.Alert;
@@ -98,29 +95,34 @@ public abstract class WidgetCaiyunBase extends AppWidgetProvider {
         }).start();
     }
 
+    @SuppressLint("DefaultLocale")
+    String timestamp2HHMM(long ts) {
+        ts = (ts + 8 * 3600) % 86400;
+        return String.format("%02d:%02d", (ts / 3600), (ts % 3600) / 60);
+    }
+
     @SuppressWarnings("unchecked")
     public void notify(Context context, @NonNull Alert alert) {
         if (!alert.status.equals("ok") || alert.content == null || alert.content.isEmpty())
             return;
-        final String setFileName = "hasNotifyCaiyun.set";
-        HashSet<String> hasNotify = (HashSet<String>) Utils.readObj(context, setFileName);
 
-        if (hasNotify == null || hasNotify.size() > 20)
-            hasNotify = new HashSet<>();
+        var alertMap = (HashMap<String, Alert.Content>) Utils.readObj(context, "alertMap");
+        if (alertMap == null)
+            alertMap = new HashMap<>();
 
         boolean addItem = false;
         for (Alert.Content info : alert.content) {
-            if (hasNotify.contains(info.alertId))
+            if (alertMap.containsKey(info.alertId))
                 continue;
 
-            hasNotify.add(info.alertId);
+            alertMap.put(info.alertId, info);
             addItem = true;
 
             int warnLevel = Integer.parseInt(info.code) % 100; // 0(白色预警) ~ 4(红色预警)
             String channelId = Utils.warnLevelStr[warnLevel];
 
             RemoteViews cusRemoveExpandView = new RemoteViews(context.getPackageName(), R.layout.layout_notify_large);
-            cusRemoveExpandView.setTextViewText(R.id.title, info.title);
+            cusRemoveExpandView.setTextViewText(R.id.title, info.title + " 发布于" + timestamp2HHMM(info.pubtimestamp));
             cusRemoveExpandView.setTextViewText(R.id.content, info.description);
             cusRemoveExpandView.setImageViewResource(R.id.icon, Utils.warnIconIndex[warnLevel]);
 
@@ -134,20 +136,29 @@ public abstract class WidgetCaiyunBase extends AppWidgetProvider {
                     .build();
 
             NotificationManager notificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
-            CRC32 crc32 = new CRC32();
-            crc32.update(info.alertId.getBytes());
-            notificationManager.notify((int) crc32.getValue(), notification);
+            notificationManager.notify(info.alertId.hashCode(), notification);
         }
         if (addItem) {
-            Utils.saveObj(context, setFileName, hasNotify);
+            while (alertMap.size() > 10) {
+                removeMinPub(alertMap);
+            }
+            Utils.saveObj(context, "alertMap", alertMap);
+        }
+    }
 
-            var alertList = (List<Alert.Content>) Utils.readObj(context, "alertList");
-            if (alertList == null)
-                alertList = new LinkedList<>();
-            alertList.addAll(alert.content);
-            while (alertList.size() > 20)
-                alertList.remove(0);
-            Utils.saveObj(context, "alertList", alertList);
+    private static void removeMinPub(HashMap<String, Alert.Content> map) {
+        String minKey = null;
+        long minP = Long.MAX_VALUE;
+
+        for (var entry : map.entrySet()) {
+            if (entry.getValue().pubtimestamp < minP) {
+                minP = entry.getValue().pubtimestamp;
+                minKey = entry.getKey();
+            }
+        }
+
+        if (minKey != null) {
+            map.remove(minKey);
         }
     }
 
