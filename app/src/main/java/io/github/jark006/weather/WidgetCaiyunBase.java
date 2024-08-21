@@ -10,7 +10,6 @@ import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Build;
 import android.widget.RemoteViews;
 
@@ -22,6 +21,7 @@ import java.util.HashMap;
 
 import io.github.jark006.weather.caiyun.Caiyun;
 import io.github.jark006.weather.caiyun.Caiyun.Result.Alert;
+import io.github.jark006.weather.utils.LocationStruct;
 import io.github.jark006.weather.utils.NetworkUtils;
 import io.github.jark006.weather.utils.Utils;
 
@@ -59,22 +59,23 @@ public abstract class WidgetCaiyunBase extends AppWidgetProvider {
         showTips(context, tips);
 
         new Thread(() -> {
-            SharedPreferences sf = context.getSharedPreferences("locationInfo", Context.MODE_PRIVATE);
-            double longitude = sf.getFloat("longitude", 0);
-            double latitude = sf.getFloat("latitude", 90); // 北极
+            LocationStruct locationStruct = (LocationStruct)Utils.readObj(context, "locationStruct");
+            if (locationStruct == null ) {
+                locationStruct = new LocationStruct();
+            }
 
-            String districtName = sf.getString("districtName", "");
+            String districtName = locationStruct.districtName;
             if (districtName.isEmpty())
-                districtName = sf.getString("cityName", "");
+                districtName = locationStruct.cityName;
 
-            if (Math.abs(latitude) > 88.0) {  // 靠近南北极就是位置异常
-                longitude = Utils.defLongitude;
-                latitude = Utils.defLatitude;
+            if (Math.abs(locationStruct.latitude) > 88.0) {  // 靠近南北极就是位置异常
+                locationStruct.longitude = Utils.defLongitude;
+                locationStruct.latitude = Utils.defLatitude;
             }
 
             try {
                 String link = String.format("https://api.caiyunapp.com/v2.5/%s/%f,%f/weather.json?alert=true&hourlysteps=12&dailysteps=3",
-                        APIKEY, longitude, latitude);
+                        APIKEY, locationStruct.longitude, locationStruct.latitude);
                 String caiyunData = NetworkUtils.getData(link);
                 if (caiyunData == null) {
                     Thread.sleep(2000);

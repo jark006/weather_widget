@@ -6,7 +6,6 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -43,6 +42,7 @@ import com.amap.api.location.AMapLocationListener;
 import java.util.Locale;
 
 import io.github.jark006.weather.utils.DateUtils;
+import io.github.jark006.weather.utils.LocationStruct;
 import io.github.jark006.weather.utils.Utils;
 import io.github.jark006.weather.caiyun.Caiyun.Result.Alert;
 
@@ -60,6 +60,8 @@ public class MainActivity extends AppCompatActivity {
     LinearLayout recentAlert;
     ListView alertListVew;
     CustomAdapter customAdapter;
+    final int MSG_OK = 1;
+    final int MSG_NULL = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,19 +93,14 @@ public class MainActivity extends AppCompatActivity {
             customAdapter.setList(new ArrayList<>(alertMap.values()));
         }
 
-        SharedPreferences sf = this.getSharedPreferences("locationInfo", Context.MODE_PRIVATE);
-        long updateTime = sf.getLong("updateTime", 0);
-        if (updateTime > 0) {
-            double longitude = sf.getFloat("longitude", 0);
-            double latitude = sf.getFloat("latitude", 0);
-            String address = sf.getString("address", "未知");
-
+        LocationStruct locationStruct = (LocationStruct) Utils.readObj(getApplicationContext(), "locationStruct");
+        if (locationStruct == null || locationStruct.updateTime <= 0) {
+            locationInfo.setText("暂无位置信息，请更新");
+        } else {
             locationInfo.setText(String.format(Locale.CHINA,
                     "更新时间: %s\n经度: %.5f 纬度: %.5f\n%s",
-                    DateUtils.getFormatDate(updateTime, DateUtils.yyyyMMddHHmm),
-                    longitude, latitude, address));
-        } else {
-            locationInfo.setText("暂无位置信息，请更新");
+                    DateUtils.getFormatDate(locationStruct.updateTime, DateUtils.yyyyMMddHHmm),
+                    locationStruct.longitude, locationStruct.latitude, locationStruct.address));
         }
         btUpdateLocation.setText("更新当前位置");
         btUpdateLocation.setOnClickListener(v -> getLocationAmap(getApplicationContext()));
@@ -113,36 +110,30 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void handleMessage(@NonNull Message msg) {
             super.handleMessage(msg);
-            boolean status = msg.getData().getBoolean("status");
 
-            if (!status) {
-                String errorTips = msg.getData().getString("errorTips");
-                locationInfo.setText(errorTips);
+            if (msg.what == MSG_NULL) {
+                locationInfo.setText((String) msg.obj);
                 return;
             }
 
-            double longitude = msg.getData().getDouble("longitude");
-            double latitude = msg.getData().getDouble("latitude");
-            String address = msg.getData().getString("address");
-            String cityName = msg.getData().getString("cityName");
-            String districtName = msg.getData().getString("districtName");
-            String adCode = msg.getData().getString("adCode");
-            long updateTime = msg.getData().getLong("updateTime");
+            if (msg.what != MSG_OK) {
+                locationInfo.setText("无效数据");
+                return;
+            }
+
+            LocationStruct locationStruct = (LocationStruct) msg.obj;
+            if (locationStruct == null || locationStruct.updateTime <= 0) {
+                locationInfo.setText("无效数据");
+                return;
+            }
 
             locationInfo.setText(String.format(Locale.CHINA,
                     "更新时间: %s\n经度: %.5f 纬度: %.5f\n%s",
-                    DateUtils.getFormatDate(updateTime, DateUtils.yyyyMMddHHmm),
-                    longitude, latitude, address));
+                    DateUtils.getFormatDate(locationStruct.updateTime, DateUtils.yyyyMMddHHmm),
+                    locationStruct.longitude, locationStruct.latitude, locationStruct.address));
 
-            SharedPreferences.Editor editor = getBaseContext().getSharedPreferences("locationInfo", Context.MODE_PRIVATE).edit();
-            editor.putFloat("longitude", (float) longitude);
-            editor.putFloat("latitude", (float) latitude);
-            editor.putString("address", address);
-            editor.putString("cityName", cityName);
-            editor.putString("districtName", districtName);
-            editor.putString("adCode", adCode);
-            editor.putLong("updateTime", updateTime);
-            editor.apply();
+            Utils.saveObj(getApplicationContext(), "locationStruct", locationStruct);
+
         }
     };
 
@@ -195,25 +186,27 @@ public class MainActivity extends AppCompatActivity {
         AMapLocationClient.setApiKey(Utils.getMetaValue(this, "com.amap.api.v2.apikey"));
 
         AMapLocationListener mLocationListener = aMapLocation -> {
-            Message msg = new Message();
-            Bundle data = new Bundle();
+            Message msg = Message.obtain();
             if (aMapLocation.getErrorCode() == 0) {
-                data.putBoolean("status", true);
-                data.putDouble("longitude", aMapLocation.getLongitude());
-                data.putDouble("latitude", aMapLocation.getLatitude());
-                data.putString("address", aMapLocation.getAddress());
-                data.putString("cityName", aMapLocation.getCity());
-                data.putString("districtName", aMapLocation.getDistrict());
-                data.putString("adCode", aMapLocation.getAdCode());
-                data.putLong("updateTime", aMapLocation.getTime());
+                LocationStruct locationStruct = new LocationStruct();
+
+                locationStruct.longitude = aMapLocation.getLongitude();
+                locationStruct.latitude = aMapLocation.getLatitude();
+                locationStruct.address = aMapLocation.getAddress();
+                locationStruct.cityName = aMapLocation.getCity();
+                locationStruct.districtName = aMapLocation.getDistrict();
+                locationStruct.adCode = aMapLocation.getAdCode();
+                locationStruct.updateTime = aMapLocation.getTime();
+
+                msg.obj = locationStruct;
+                msg.what = MSG_OK;
             } else {
                 // 定位失败，详见错误码表。 https://lbs.amap.com/api/android-location-sdk/guide/utilities/errorcode
-                String errorTips = getString(R.string.location_failed) + "\n"
+                msg.obj = getString(R.string.location_failed) + "\n"
                         + aMapLocation.getErrorInfo();
-                data.putBoolean("status", false);
-                data.putString("errorTips", errorTips);
+                msg.what = MSG_NULL;
             }
-            msg.setData(data);
+
             handler.sendMessage(msg);
         };
 

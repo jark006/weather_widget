@@ -33,6 +33,7 @@ import io.github.jark006.weather.qweather.rain.Rain;
 import io.github.jark006.weather.qweather.realtime.RealTime;
 import io.github.jark006.weather.qweather.threeDay.ThreeDay;
 import io.github.jark006.weather.qweather.warning.Warning;
+import io.github.jark006.weather.utils.LocationStruct;
 import io.github.jark006.weather.utils.NetworkUtils;
 import io.github.jark006.weather.utils.Utils;
 
@@ -87,18 +88,18 @@ public abstract class WidgetBase extends AppWidgetProvider {
         showTips(context, tips);
 
         new Thread(() -> {
+            LocationStruct locationStruct = (LocationStruct)Utils.readObj(context, "locationStruct");
+            if (locationStruct == null ) {
+                locationStruct = new LocationStruct();
+            }
 
-            SharedPreferences sf = context.getSharedPreferences("locationInfo", Context.MODE_PRIVATE);
-            double longitude = sf.getFloat("longitude", 0);
-            double latitude = sf.getFloat("latitude", 90); // 北极
-
-            String districtName = sf.getString("districtName", "");
+            String districtName = locationStruct.districtName;
             if (districtName.isEmpty())
-                districtName = sf.getString("cityName", "");
+                districtName = locationStruct.cityName;
 
-            if (Math.abs(latitude) > 88.0) {  // 靠近南北极就是位置异常
-                longitude = Utils.defLongitude;
-                latitude = Utils.defLatitude;
+            if (Math.abs(locationStruct.latitude) > 88.0) {  // 靠近南北极就是位置异常
+                locationStruct.longitude = Utils.defLongitude;
+                locationStruct.latitude = Utils.defLatitude;
             }
 
             long nowTime = System.currentTimeMillis() / 1000;
@@ -109,7 +110,7 @@ public abstract class WidgetBase extends AppWidgetProvider {
             try {
 
                 String link = String.format("https://devapi.qweather.com/v7/grid-weather/now?location=%f,%f&key=%s",
-                        longitude, latitude, APIKEY);
+                        locationStruct.longitude, locationStruct.latitude, APIKEY);
                 String realTimeData = NetworkUtils.getData(link);
                 if (realTimeData == null) {
                     Thread.sleep(2000);
@@ -125,7 +126,7 @@ public abstract class WidgetBase extends AppWidgetProvider {
 
 
                 link = String.format("https://devapi.qweather.com/v7/minutely/5m?location=%f,%f&key=%s",
-                        longitude, latitude, APIKEY);
+                        locationStruct.longitude, locationStruct.latitude, APIKEY);
                 String rainData = NetworkUtils.getData(link);
                 if (rainData == null) {
                     Thread.sleep(2000);
@@ -147,7 +148,7 @@ public abstract class WidgetBase extends AppWidgetProvider {
                     threeDayData = sf3day.getString("data", "");
                 } else {  // 缓存数据 过时6小时
                     link = String.format("https://devapi.qweather.com/v7/grid-weather/3d?location=%f,%f&key=%s",
-                            longitude, latitude, APIKEY);
+                            locationStruct.longitude, locationStruct.latitude, APIKEY);
                     threeDayData = NetworkUtils.getData(link);
                     if (threeDayData == null) {
                         Thread.sleep(2000);
@@ -169,7 +170,7 @@ public abstract class WidgetBase extends AppWidgetProvider {
 
 
                 link = String.format("https://devapi.qweather.com/v7/warning/now?location=%f,%f&key=%s",
-                        longitude, latitude, APIKEY);
+                        locationStruct.longitude, locationStruct.latitude, APIKEY);
                 String warningData = NetworkUtils.getData(link);
                 if (warningData == null) {
                     Thread.sleep(2000);
