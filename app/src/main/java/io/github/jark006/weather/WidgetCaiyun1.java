@@ -45,12 +45,10 @@ public class WidgetCaiyun1 extends WidgetCaiyunBase {
             var realtime = caiyun.result.realtime;
             if (realtime != null) {
                 remoteViews.setTextViewText(R.id.updateTime, updateTime + context.getString(R.string.widget_update_time));
-                remoteViews.setTextViewText(R.id.today_tem, (int)Math.ceil(realtime.temperature) + "°");
+                remoteViews.setTextViewText(R.id.today_tem, (int) Math.ceil(realtime.temperature) + "°");
 
-                var air = realtime.air_quality;
-                String otherInfo = String.format("%d%% PM2.5:%.0f PM10:%.0f O₃:%.0f SO₂:%.0f NO₂:%.0f CO:%.1f %s",
-                        (int) (realtime.humidity * 100), air.pm25, air.pm10, air.o3, air.so2, air.no2, air.co,
-                        air.description.chn);
+                String otherInfo = String.format("体感温度: %d℃  湿度: %d%%  空气质量: %s",
+                        Math.round(realtime.apparent_temperature), (int) (realtime.humidity * 100), realtime.air_quality.description.chn);
                 remoteViews.setTextViewText(R.id.today_other, otherInfo);
 
                 // 是否白天
@@ -65,14 +63,14 @@ public class WidgetCaiyun1 extends WidgetCaiyunBase {
                 var description = minutely.description;
                 var hourly = caiyun.result.hourly;
                 if (hourly != null) {
-                    description+="。 "+hourly.description;
+                    description += "。 " + hourly.description;
                     var tempList = hourly.temperature;
                     if (tempList != null && tempList.size() > 10) {
                         var tempIn10hours = new StringBuilder(); // 未来10小时的温度
                         tempIn10hours.append(tempList.get(1).datetime.substring(11, 13)).append("时[");
                         double gap = (tempList.get(1).value - tempList.get(0).value); // 误差校准
                         for (int i = 1; i <= 10; i++)
-                            tempIn10hours.append((int)Math.ceil(tempList.get(i).value - gap)).append("° ");
+                            tempIn10hours.append((int) Math.ceil(tempList.get(i).value - gap)).append("° ");
                         tempIn10hours.setCharAt(tempIn10hours.length() - 1, ']'); // 把最后的空格换成 ']'
                         tempIn10hours.append(tempList.get(10).datetime.substring(11, 13)).append("时");
                         remoteViews.setTextViewText(R.id.hour_temp, tempIn10hours.toString());
@@ -84,14 +82,14 @@ public class WidgetCaiyun1 extends WidgetCaiyunBase {
             var daily = caiyun.result.daily;
             if (daily != null && daily.temperature != null && daily.temperature.size() > 2) {
                 var tomorrow = daily.temperature.get(1);
-                remoteViews.setTextViewText(R.id.tomorrow, (int)Math.ceil(tomorrow.avg) + "°");
+                remoteViews.setTextViewText(R.id.tomorrow, (int) Math.ceil(tomorrow.avg) + "°");
                 remoteViews.setTextViewText(R.id.tomorrowRange,
-                        (int)Math.ceil(tomorrow.min) + " ~ " + (int)Math.ceil(tomorrow.max) + "°");
+                        (int) Math.ceil(tomorrow.min) + " ~ " + (int) Math.ceil(tomorrow.max) + "°");
 
                 var overmorrow = daily.temperature.get(2);
-                remoteViews.setTextViewText(R.id.overmorrow, (int)Math.ceil(overmorrow.avg) + "°");
+                remoteViews.setTextViewText(R.id.overmorrow, (int) Math.ceil(overmorrow.avg) + "°");
                 remoteViews.setTextViewText(R.id.overmorrowRange,
-                        (int)Math.ceil(overmorrow.min) + " ~ " + (int)Math.ceil(overmorrow.max) + "°");
+                        (int) Math.ceil(overmorrow.min) + " ~ " + (int) Math.ceil(overmorrow.max) + "°");
             }
             if (daily != null && daily.skycon != null && daily.skycon.size() > 2) {
                 var tomorrow = daily.skycon.get(1);

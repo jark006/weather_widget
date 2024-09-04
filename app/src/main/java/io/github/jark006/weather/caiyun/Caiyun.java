@@ -53,6 +53,7 @@ public class Caiyun {
             public float visibility;
             public float dswrf;
             public float pressure;
+            public float apparent_temperature;
             public Air_quality air_quality;
 
             static public class Air_quality {
