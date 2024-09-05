@@ -47,7 +47,7 @@ public class WidgetCaiyun1 extends WidgetCaiyunBase {
                 remoteViews.setTextViewText(R.id.updateTime, updateTime + context.getString(R.string.widget_update_time));
                 remoteViews.setTextViewText(R.id.today_tem, (int) Math.ceil(realtime.temperature) + "°");
 
-                String otherInfo = String.format("体感温度: %d℃  湿度: %d%%  空气质量: %s",
+                String otherInfo = String.format("体感: %d℃  湿度: %d%%  空气质量: %s",
                         Math.round(realtime.apparent_temperature), (int) (realtime.humidity * 100), realtime.air_quality.description.chn);
                 remoteViews.setTextViewText(R.id.today_other, otherInfo);
 
