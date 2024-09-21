@@ -59,7 +59,7 @@ public class WidgetCaiyun2 extends WidgetCaiyunBase {
             if (daily != null && daily.temperature != null && daily.temperature.size() > 2) {
                 var tomorrow = daily.temperature.get(1);
                 remoteViews.setTextViewText(R.id.tomorrowRange,
-                        (int) tomorrow.min + "~" + (int) tomorrow.max + "°");
+                        (int) Math.ceil(tomorrow.min) + "~" + (int) Math.ceil(tomorrow.max) + "°");
             }
             if (daily != null && daily.skycon != null && daily.skycon.size() > 2) {
                 var tomorrow = daily.skycon.get(1);
