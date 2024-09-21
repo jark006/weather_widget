@@ -42,7 +42,7 @@ public class WidgetCaiyun2 extends WidgetCaiyunBase {
             if (realtime != null) {
                 remoteViews.setTextViewText(R.id.updateTime, updateTime +
                         context.getString(R.string.widget_update_time) + "\n" + districtName);
-                remoteViews.setTextViewText(R.id.today_tem, (int) realtime.temperature + "°");
+                remoteViews.setTextViewText(R.id.today_tem, (int) Math.ceil(realtime.temperature) + "°");
 
                 // 是否白天
                 long hours = (System.currentTimeMillis() / 3600000 + 8) % 24;
