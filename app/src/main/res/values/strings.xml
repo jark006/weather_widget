@@ -70,5 +70,11 @@ https://developer.amap.com/pages/privacy/\n\n
     <string name="hour_temp" translatable="false">08H[ 24 25 26 ]12H</string>
     <string name="widget_caiyun2_description">彩云小型</string>
     <string name="alertTitle">近期预警</string>
+    <string name="longitudeText">经度</string>
+    <string name="latitudeText">纬度</string>
+    <string name="areaTextHint">城市/区/县/乡，随便写</string>
+    <string name="areaText">地区</string>
+    <string name="saveText">保存</string>
+    <string name="editAreaText">编辑位置</string>
 
 </resources>

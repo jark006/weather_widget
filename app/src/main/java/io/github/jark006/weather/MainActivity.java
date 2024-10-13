@@ -77,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
         alertListVew.setAdapter(customAdapter);
 
         findViewById(R.id.btJumpToGithub).setOnClickListener(v -> startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/jark006/weather_widget"))));
+        findViewById(R.id.settingArea).setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
     }
 
     @Override
@@ -102,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
                     DateUtils.getFormatDate(locationStruct.updateTime, DateUtils.yyyyMMddHHmm),
                     locationStruct.longitude, locationStruct.latitude, locationStruct.address));
         }
-        btUpdateLocation.setText("更新当前位置");
+        btUpdateLocation.setText("更新位置");
         btUpdateLocation.setOnClickListener(v -> getLocationAmap(getApplicationContext()));
     }
 

@@ -21,32 +21,36 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Weather"
         android:usesCleartextTraffic="true">
-<!--        <receiver-->
-<!--            android:name=".Widget1"-->
-<!--            android:exported="true">-->
-<!--            <intent-filter>-->
-<!--                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />-->
-<!--            </intent-filter>-->
-<!--            <meta-data-->
-<!--                android:name="android.appwidget.provider"-->
-<!--                android:resource="@xml/widget1_info" />-->
-<!--        </receiver>-->
-<!--        <receiver-->
-<!--            android:name=".Widget2"-->
-<!--            android:exported="true">-->
-<!--            <intent-filter>-->
-<!--                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />-->
-<!--            </intent-filter>-->
-<!--            <meta-data-->
-<!--                android:name="android.appwidget.provider"-->
-<!--                android:resource="@xml/widget2_info" />-->
-<!--        </receiver>-->
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false" />
+        <!-- <receiver -->
+        <!-- android:name=".Widget1" -->
+        <!-- android:exported="true"> -->
+        <!-- <intent-filter> -->
+        <!-- <action android:name="android.appwidget.action.APPWIDGET_UPDATE" /> -->
+        <!-- </intent-filter> -->
+        <!-- <meta-data -->
+        <!-- android:name="android.appwidget.provider" -->
+        <!-- android:resource="@xml/widget1_info" /> -->
+        <!-- </receiver> -->
+        <!-- <receiver -->
+        <!-- android:name=".Widget2" -->
+        <!-- android:exported="true"> -->
+        <!-- <intent-filter> -->
+        <!-- <action android:name="android.appwidget.action.APPWIDGET_UPDATE" /> -->
+        <!-- </intent-filter> -->
+        <!-- <meta-data -->
+        <!-- android:name="android.appwidget.provider" -->
+        <!-- android:resource="@xml/widget2_info" /> -->
+        <!-- </receiver> -->
         <receiver
             android:name=".WidgetCaiyun1"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
+
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_caiyun1_info" />
@@ -57,6 +61,7 @@
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
+
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_caiyun2_info" />
@@ -72,10 +77,9 @@
 
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
             </intent-filter>
-        </activity>
-
-        <!-- 请到高德平台申请你的apiKey https://lbs.amap.com/api/android-location-sdk/guide/create-project/get-key -->
+        </activity> <!-- 请到高德平台申请你的apiKey https://lbs.amap.com/api/android-location-sdk/guide/create-project/get-key -->
         <service android:name="com.amap.api.location.APSService" />
+
         <meta-data
             android:name="com.amap.api.v2.apikey"
             android:value="b8145690726d3f427969758a5fcf405b" />
