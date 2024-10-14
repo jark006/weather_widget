@@ -1,14 +1,9 @@
 package io.github.jark006.weather;
 
 import android.Manifest;
-import android.app.Activity;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -24,7 +19,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
@@ -104,7 +98,10 @@ public class MainActivity extends AppCompatActivity {
                     locationStruct.longitude, locationStruct.latitude, locationStruct.address));
         }
         btUpdateLocation.setText("更新位置");
-        btUpdateLocation.setOnClickListener(v -> getLocationAmap(getApplicationContext()));
+        btUpdateLocation.setOnClickListener(v -> {
+            getLocationAmap(getApplicationContext());
+            Utils.createNotificationChannel(MainActivity.this, this);
+        });
     }
 
     private final Handler handler = new Handler(Looper.getMainLooper()) {
@@ -138,38 +135,16 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    boolean isNoPermission(Activity activity, String permission) {
-        return ContextCompat.checkSelfPermission(activity, permission) != PackageManager.PERMISSION_GRANTED;
-    }
-
     void getLocationAmap(Context context) {
-        if (isNoPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ||
-                isNoPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)) {
+        if (Utils.isNoPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ||
+                Utils.isNoPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)) {
 
             ActivityCompat.requestPermissions(MainActivity.this,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION,}, 0);
 
-            if (isNoPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ||
-                    isNoPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)) {
+            if (Utils.isNoPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ||
+                    Utils.isNoPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)) {
                 locationInfo.setText(R.string.location_tips);
-                btUpdateLocation.setText(R.string.setting_permission);
-                btUpdateLocation.setOnClickListener(v -> {
-                    Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                    intent.setData(Uri.fromParts("package", this.getPackageName(), null));
-                    startActivity(intent);
-                });
-                return;
-            }
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                isNoPermission(this, Manifest.permission.POST_NOTIFICATIONS)) {
-
-            ActivityCompat.requestPermissions(MainActivity.this,
-                    new String[]{Manifest.permission.POST_NOTIFICATIONS,}, 1);
-
-            if (isNoPermission(this, Manifest.permission.POST_NOTIFICATIONS)) {
-                locationInfo.setText(R.string.notification_tips);
                 btUpdateLocation.setText(R.string.setting_permission);
                 btUpdateLocation.setOnClickListener(v -> {
                     Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
@@ -227,15 +202,6 @@ public class MainActivity extends AppCompatActivity {
         mLocationClient.setLocationListener(mLocationListener);//设置定位回调监听
         mLocationClient.setLocationOption(option);//给定位客户端对象设置定位参数
         mLocationClient.startLocation();//启动定位
-
-        // 创建预警信息通知通道
-        NotificationManager notificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
-        for (int warnLevel = 0; warnLevel < 5; warnLevel++) {
-            String channelId = Utils.warnLevelStr[warnLevel];//00白色 ... 04红色
-            NotificationChannel channel = new NotificationChannel(channelId, channelId, Utils.IMPORTANT_INT[warnLevel + 1]);
-            channel.setDescription(Utils.warnLevelDescription[warnLevel]);
-            notificationManager.createNotificationChannel(channel);
-        }
     }
 
     public static class CustomAdapter extends BaseAdapter {

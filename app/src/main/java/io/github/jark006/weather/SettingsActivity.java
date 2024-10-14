@@ -56,6 +56,8 @@ public class SettingsActivity extends AppCompatActivity {
 
                 Utils.saveObj(getApplicationContext(), "locationStruct", locationStruct);
                 Toast.makeText(this, "保存成功", Toast.LENGTH_LONG).show();
+
+                Utils.createNotificationChannel(SettingsActivity.this, this);
             } catch (Exception e) {
                 Toast.makeText(this, "处理错误: " + e, Toast.LENGTH_LONG).show();
             }
@@ -72,7 +74,8 @@ public class SettingsActivity extends AppCompatActivity {
         } else {
             longitudeEdit.setText(String.valueOf(locationStruct.longitude));
             latitudeEdit.setText(String.valueOf(locationStruct.latitude));
-            areaEdit.setText(locationStruct.districtName);
+            areaEdit.setText((!locationStruct.districtName.isEmpty()) ?
+                    locationStruct.districtName : locationStruct.cityName);
         }
     }
 

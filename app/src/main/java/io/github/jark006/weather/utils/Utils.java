@@ -1,10 +1,23 @@
 package io.github.jark006.weather.utils;
 
+import static android.content.Context.NOTIFICATION_SERVICE;
+
+import android.Manifest;
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Build;
+import android.provider.Settings;
+import android.widget.Toast;
+
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -46,6 +59,37 @@ public class Utils {
             R.drawable.ic_warning_red,
     };
 
+
+    public static boolean isNoPermission(Activity activity, String permission) {
+        return ContextCompat.checkSelfPermission(activity, permission) != PackageManager.PERMISSION_GRANTED;
+    }
+
+    public static void createNotificationChannel(Activity activity, Context context){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                isNoPermission(activity, Manifest.permission.POST_NOTIFICATIONS)) {
+
+            ActivityCompat.requestPermissions(activity,
+                    new String[]{Manifest.permission.POST_NOTIFICATIONS,}, 1);
+
+            if (isNoPermission(activity, Manifest.permission.POST_NOTIFICATIONS)) {
+                Toast.makeText(context, context.getString(R.string.notification_tips), Toast.LENGTH_LONG).show();
+
+                Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                intent.setData(Uri.fromParts("package", activity.getPackageName(), null));
+                activity.startActivity(intent);
+                return;
+            }
+        }
+
+        // 创建预警信息通知通道
+        NotificationManager notificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
+        for (int warnLevel = 0; warnLevel < 5; warnLevel++) {
+            String channelId = Utils.warnLevelStr[warnLevel];//00白色 ... 04红色
+            NotificationChannel channel = new NotificationChannel(channelId, channelId, Utils.IMPORTANT_INT[warnLevel + 1]);
+            channel.setDescription(Utils.warnLevelDescription[warnLevel]);
+            notificationManager.createNotificationChannel(channel);
+        }
+    }
 
     public static void saveLog(Context context, String text) {
         final String logFileName = "log.txt";
