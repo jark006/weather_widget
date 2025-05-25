@@ -59,8 +59,8 @@ public abstract class WidgetCaiyunBase extends AppWidgetProvider {
         showTips(context, tips);
 
         new Thread(() -> {
-            LocationStruct locationStruct = (LocationStruct)Utils.readObj(context, "locationStruct");
-            if (locationStruct == null ) {
+            LocationStruct locationStruct = (LocationStruct) Utils.readObj(context, "locationStruct");
+            if (locationStruct == null) {
                 locationStruct = new LocationStruct();
             }
 
@@ -127,17 +127,19 @@ public abstract class WidgetCaiyunBase extends AppWidgetProvider {
             cusRemoveExpandView.setTextViewText(R.id.content, info.description);
             cusRemoveExpandView.setImageViewResource(R.id.icon, Utils.warnIconIndex[warnLevel]);
 
-            Notification notification = new Notification.Builder(context, channelId)
-                    .setWhen(System.currentTimeMillis())
-                    .setSmallIcon(Utils.warnIconIndex[warnLevel])
-                    .setContentTitle(info.location + info.status)
-                    .setContentText(info.title)
-                    .setStyle(new Notification.DecoratedCustomViewStyle())
-                    .setCustomBigContentView(cusRemoveExpandView)
-                    .build();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                var notification = new Notification.Builder(context, channelId)
+                        .setWhen(System.currentTimeMillis())
+                        .setSmallIcon(Utils.warnIconIndex[warnLevel])
+                        .setContentTitle(info.location + info.status)
+                        .setContentText(info.title)
+                        .setStyle(new Notification.DecoratedCustomViewStyle())
+                        .setCustomBigContentView(cusRemoveExpandView)
+                        .build();
 
-            NotificationManager notificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
-            notificationManager.notify(info.alertId.hashCode(), notification);
+                NotificationManager notificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
+                notificationManager.notify(info.alertId.hashCode(), notification);
+            }
         }
         if (addItem) {
             while (alertMap.size() > 10) {

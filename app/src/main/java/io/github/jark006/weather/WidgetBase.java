@@ -88,8 +88,8 @@ public abstract class WidgetBase extends AppWidgetProvider {
         showTips(context, tips);
 
         new Thread(() -> {
-            LocationStruct locationStruct = (LocationStruct)Utils.readObj(context, "locationStruct");
-            if (locationStruct == null ) {
+            LocationStruct locationStruct = (LocationStruct) Utils.readObj(context, "locationStruct");
+            if (locationStruct == null) {
                 locationStruct = new LocationStruct();
             }
 
@@ -105,7 +105,7 @@ public abstract class WidgetBase extends AppWidgetProvider {
             long nowTime = System.currentTimeMillis() / 1000;
 
             //一个KEY免费请求量太少， 多备几个随机选
-            var APIKEY = APIKEY_LIST[(int)(nowTime % APIKEY_LIST.length)];
+            var APIKEY = APIKEY_LIST[(int) (nowTime % APIKEY_LIST.length)];
 
             try {
 
@@ -199,7 +199,7 @@ public abstract class WidgetBase extends AppWidgetProvider {
             ois.close();
             fis.close();
         } catch (Exception e) {
-            Utils.saveLog(context, "读取 "+setFileName+" 失败\n"+e);
+            Utils.saveLog(context, "读取 " + setFileName + " 失败\n" + e);
         }
 
         if (hasNotify == null || hasNotify.size() > 100)
@@ -213,9 +213,14 @@ public abstract class WidgetBase extends AppWidgetProvider {
                 continue;
 
             hasNotify.add(info.id);
-            addItem=true;
+            addItem = true;
 
-            var warnLevel = warnColorMap.getOrDefault(info.severityColor, 0); // 0(白色预警) ~ 4(红色预警)
+            Integer warnLevel; // 0(白色预警) ~ 4(红色预警)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                warnLevel = warnColorMap.getOrDefault(info.severityColor, 0);
+            }else {
+                warnLevel = warnColorMap.get(info.severityColor);
+            }
             if (warnLevel == null)
                 warnLevel = 1;
 
@@ -226,20 +231,22 @@ public abstract class WidgetBase extends AppWidgetProvider {
             cusRemoveExpandView.setTextViewText(R.id.content, info.text);
             cusRemoveExpandView.setImageViewResource(R.id.icon, Utils.warnIconIndex[warnLevel]);
 
-            Notification notification = new Notification.Builder(context, channelId)
-                    .setWhen(System.currentTimeMillis())
-                    .setSmallIcon(R.drawable.ic_sunny)
-                    .setContentTitle(info.title)
-                    .setContentText(info.text)
-                    .setStyle(new Notification.DecoratedCustomViewStyle())
-                    .setCustomBigContentView(cusRemoveExpandView)
-                    .setOnlyAlertOnce(true) // 无效
-                    .build();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                var notification = new Notification.Builder(context, channelId)
+                        .setWhen(System.currentTimeMillis())
+                        .setSmallIcon(R.drawable.ic_sunny)
+                        .setContentTitle(info.title)
+                        .setContentText(info.text)
+                        .setStyle(new Notification.DecoratedCustomViewStyle())
+                        .setCustomBigContentView(cusRemoveExpandView)
+                        .setOnlyAlertOnce(true) // 无效
+                        .build();
 
-            NotificationManager notificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
-            CRC32 crc32 = new CRC32();
-            crc32.update(info.id.getBytes());
-            notificationManager.notify((int) crc32.getValue(), notification);
+                NotificationManager notificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
+                CRC32 crc32 = new CRC32();
+                crc32.update(info.id.getBytes());
+                notificationManager.notify((int) crc32.getValue(), notification);
+            }
         }
         if (addItem) {
             try {
@@ -249,7 +256,7 @@ public abstract class WidgetBase extends AppWidgetProvider {
                 oos.close();
                 fos.close();
             } catch (Exception e) {
-                Utils.saveLog(context, "保存 "+setFileName+" 失败\n"+e);
+                Utils.saveLog(context, "保存 " + setFileName + " 失败\n" + e);
             }
         }
     }

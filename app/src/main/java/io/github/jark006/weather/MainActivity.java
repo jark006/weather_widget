@@ -1,9 +1,11 @@
 package io.github.jark006.weather;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -178,8 +180,9 @@ public class MainActivity extends AppCompatActivity {
                 msg.what = MSG_OK;
             } else {
                 // 定位失败，详见错误码表。 https://lbs.amap.com/api/android-location-sdk/guide/utilities/errorcode
-                msg.obj = getString(R.string.location_failed) + "\n"
-                        + aMapLocation.getErrorInfo();
+                msg.obj = String.format(Locale.CHINA, "%s\n错误码:[%d] 错误信息:[%s]",
+                        getString(R.string.location_failed), aMapLocation.getErrorCode(),
+                        aMapLocation.getErrorInfo());
                 msg.what = MSG_NULL;
             }
 
@@ -198,6 +201,7 @@ public class MainActivity extends AppCompatActivity {
         option.setLocationMode(AMapLocationClientOption.AMapLocationMode.Battery_Saving);//低功耗模式
         option.setLocationPurpose(AMapLocationClientOption.AMapLocationPurpose.SignIn);
         option.setOnceLocationLatest(true);
+        option.setMockEnable(true);
 
         mLocationClient.setLocationListener(mLocationListener);//设置定位回调监听
         mLocationClient.setLocationOption(option);//给定位客户端对象设置定位参数
@@ -214,7 +218,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         public void setList(List<Alert.Content> items) {
-            items.sort(Comparator.comparingLong(o -> o.pubtimestamp));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                items.sort(Comparator.comparingLong(o -> o.pubtimestamp));
+            }
             this.items = items;
             this.notifyDataSetChanged();
         }
