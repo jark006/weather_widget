@@ -111,13 +111,13 @@ public abstract class WidgetCaiyunBase extends AppWidgetProvider {
         if (alertMap == null)
             alertMap = new HashMap<>();
 
-        boolean addItem = false;
+        boolean isNewAlertCome = false;
         for (Alert.Content info : alert.content) {
             if (alertMap.containsKey(info.alertId))
                 continue;
 
             alertMap.put(info.alertId, info);
-            addItem = true;
+            isNewAlertCome = true;
 
             int warnLevel = Integer.parseInt(info.code) % 100; // 0(白色预警) ~ 4(红色预警)
             String channelId = Utils.warnLevelStr[warnLevel];
@@ -141,8 +141,8 @@ public abstract class WidgetCaiyunBase extends AppWidgetProvider {
                 notificationManager.notify(info.alertId.hashCode(), notification);
             }
         }
-        if (addItem) {
-            while (alertMap.size() > 10) {
+        if (isNewAlertCome) {
+            while (alertMap.size() > 50) {
                 removeMinPub(alertMap);
             }
             Utils.saveObj(context, "alertMap", alertMap);
