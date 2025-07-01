@@ -72,8 +72,7 @@ public class MainActivity extends AppCompatActivity {
         customAdapter = new CustomAdapter(this);
         alertListVew.setAdapter(customAdapter);
 
-        findViewById(R.id.btJumpToGithub).setOnClickListener(v -> startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/jark006/weather_widget"))));
-        findViewById(R.id.settingArea).setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
+        findViewById(R.id.setting).setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
     }
 
     @Override
@@ -95,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
             locationInfo.setText("暂无位置信息，请更新");
         } else {
             locationInfo.setText(String.format(Locale.CHINA,
-                    "更新时间: %s\n经度: %.5f 纬度: %.5f\n%s",
+                    "位置更新时间: %s\n经度: %.5f 纬度: %.5f\n%s",
                     DateUtils.getFormatDate(locationStruct.updateTime, DateUtils.yyyyMMddHHmm),
                     locationStruct.longitude, locationStruct.latitude, locationStruct.address));
         }
@@ -128,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             locationInfo.setText(String.format(Locale.CHINA,
-                    "更新时间: %s\n经度: %.5f 纬度: %.5f\n%s",
+                    "位置更新时间: %s\n经度: %.5f 纬度: %.5f\n%s",
                     DateUtils.getFormatDate(locationStruct.updateTime, DateUtils.yyyyMMddHHmm),
                     locationStruct.longitude, locationStruct.latitude, locationStruct.address));
 

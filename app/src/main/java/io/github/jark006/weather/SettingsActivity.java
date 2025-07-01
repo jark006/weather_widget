@@ -1,5 +1,7 @@
 package io.github.jark006.weather;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
@@ -26,6 +28,15 @@ public class SettingsActivity extends AppCompatActivity {
         areaEdit = findViewById(R.id.areaEdit);
         saveButton = findViewById(R.id.saveButton);
         tipsTextViewer = findViewById(R.id.tipsTextViewer);
+
+        findViewById(R.id.pickerButton).setOnClickListener(v ->
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://lbs.amap.com/tools/picker"))));
+        findViewById(R.id.btJumpToGithub).setOnClickListener(v ->
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/jark006/weather_widget"))));
+        findViewById(R.id.quarkpanButton).setOnClickListener(v ->
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://pan.quark.cn/s/d841f3513866"))));
+        findViewById(R.id.baidupanButton).setOnClickListener(v ->
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://pan.baidu.com/s/1vmY4shG9SIjsFPMSxQYGpg?pwd=6666"))));
 
         saveButton.setOnClickListener(v -> {
             try {
