@@ -12,6 +12,4 @@
 
 安卓开源桌面天气小部件，极致简约，只展示近期天气状况，并通知极端天气预警。
 
-![](widget_preview.png)
-
-![](app_preview.jpg)
+![](preview.png)
