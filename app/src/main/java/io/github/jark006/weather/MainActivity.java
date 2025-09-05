@@ -1,7 +1,6 @@
 package io.github.jark006.weather;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -56,6 +55,8 @@ public class MainActivity extends AppCompatActivity {
     LinearLayout recentAlert;
     ListView alertListVew;
     CustomAdapter customAdapter;
+    AMapLocationClient mLocationClient = null;
+
     final int MSG_OK = 1;
     final int MSG_NULL = -1;
 
@@ -100,9 +101,18 @@ public class MainActivity extends AppCompatActivity {
         }
         btUpdateLocation.setText("更新位置");
         btUpdateLocation.setOnClickListener(v -> {
-            getLocationAmap(getApplicationContext());
             Utils.createNotificationChannel(MainActivity.this, this);
+            getLocationAmap(getApplicationContext());
         });
+    }
+
+    @Override
+    public void  onPause(){
+        super.onPause();
+
+        if(mLocationClient != null && mLocationClient.isStarted()) {
+            mLocationClient.stopLocation();
+        }
     }
 
     private final Handler handler = new Handler(Looper.getMainLooper()) {
@@ -162,6 +172,14 @@ public class MainActivity extends AppCompatActivity {
         // 请到高德平台申请你的apiKey https://lbs.amap.com/api/android-location-sdk/guide/create-project/get-key
         AMapLocationClient.setApiKey(Utils.getMetaValue(this, "com.amap.api.v2.apikey"));
 
+        try {
+            mLocationClient = new AMapLocationClient(context);
+        } catch (Exception e) {
+            mLocationClient = null;
+            Utils.saveLog(context, "定位错误" + e);
+            return;
+        }
+
         AMapLocationListener mLocationListener = aMapLocation -> {
             Message msg = Message.obtain();
             if (aMapLocation.getErrorCode() == 0) {
@@ -186,15 +204,11 @@ public class MainActivity extends AppCompatActivity {
             }
 
             handler.sendMessage(msg);
-        };
 
-        AMapLocationClient mLocationClient;
-        try {
-            mLocationClient = new AMapLocationClient(context);
-        } catch (Exception e) {
-            Utils.saveLog(context, "定位错误" + e);
-            return;
-        }
+            if(mLocationClient != null && mLocationClient.isStarted()) {
+                mLocationClient.stopLocation();
+            }
+        };
 
         AMapLocationClientOption option = new AMapLocationClientOption();
         option.setLocationMode(AMapLocationClientOption.AMapLocationMode.Battery_Saving);//低功耗模式

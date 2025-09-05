@@ -14,14 +14,14 @@ android {
         }
     }
 
-    compileSdk 35
+    compileSdk 36
 
     defaultConfig {
         applicationId "io.github.jark006.weather"
         minSdk 21
         targetSdk 34
-        versionCode 314
-        versionName '3.14'
+        versionCode 315
+        versionName '3.15'
         resValue "string", "appVer", "v${versionName}"
     }
 
@@ -53,11 +53,11 @@ android {
 
 dependencies {
     implementation 'com.google.android.material:material:1.12.0'
-    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'androidx.appcompat:appcompat:1.7.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
     implementation 'com.amap.api:location:6.4.5'
-    implementation 'com.google.code.gson:gson:2.10.1'
+    implementation 'com.google.code.gson:gson:2.11.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
-    implementation 'androidx.work:work-runtime:2.10.1'
+    implementation 'androidx.work:work-runtime:2.10.3'
     implementation 'androidx.activity:activity:1.10.1'
 }
